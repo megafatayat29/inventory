@@ -240,3 +240,11 @@ export async function createExistingDeposit(payload: {
 
   return data
 }
+
+export async function deleteDepositBatch(depositRequestId: string) {
+  const { error } = await supabase.rpc('delete_deposit_batch', {
+    p_deposit_request_id: depositRequestId,
+  })
+
+  if (error) throw error
+}

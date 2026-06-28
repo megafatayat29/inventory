@@ -2,13 +2,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, FileSpreadsheet, Search } from 'lucide-react'
 import * as XLSX from 'xlsx'
-import { getAllDepositRequests } from '../../services/depositService'
+import { deleteDepositBatch, getAllDepositRequests } from '../../services/depositService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import {
   getDepositStatusClass,
   getDepositStatusLabel,
 } from '../../utils/statusBadge'
+import { getMyProfile } from '../../services/authService'
+import type { Profile } from '../../dto/user.dto'
+import { deleteInventoryItem, updateInventoryItem } from '../../services/itemService'
+import Swal from 'sweetalert2'
 
 type RackLocation = {
   id: string
@@ -69,6 +73,7 @@ type TableRow = {
   entryDate: string
   daysStored: number
   status: string
+  batchItemCount: number
 }
 
 function getDaysSince(dateString: string) {
@@ -106,6 +111,7 @@ export default function AllDeposits() {
   const [rowFilter, setRowFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [profile, setProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
     fetchDeposits()
@@ -114,6 +120,229 @@ export default function AllDeposits() {
   useEffect(() => {
     setCurrentPage(1)
   }, [search, statusFilter, rowFilter, pageSize])
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const data = await getMyProfile()
+      setProfile(data)
+    }
+
+    fetchProfile()
+  }, [])
+
+  const isSuperAdmin = profile?.role === 'super_admin'
+
+  async function handleEditItem(row: {
+    itemId: string
+    itemName: string
+    category: string | null
+    procurementUnit: string
+    entryDate: string
+  }) {
+    const result = await Swal.fire({
+      title: 'Edit Barang',
+      width: 700,
+      html: `
+        <div style="text-align:left; display:grid; gap:12px;">
+          <div>
+            <label style="font-weight:600;">Nama Barang</label>
+            <input id="item_name" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.itemName}" />
+          </div>
+
+          <div>
+            <label style="font-weight:600;">Kategori</label>
+            <select id="category" class="swal2-select" style="margin:6px 0 0 0; width:100%;">
+              <option value="">-- Pilih Kategori --</option>
+              <option value="Normal" ${row.category === 'Normal' ? 'selected' : ''}>Normal</option>
+              <option value="Gampang Pecah" ${row.category === 'Gampang Pecah' ? 'selected' : ''}>Gampang Pecah</option>
+              <option value="Tidak boleh panas" ${row.category === 'Tidak boleh panas' ? 'selected' : ''}>Tidak boleh panas</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-weight:600;">Unit Pengadaan</label>
+            <input id="procurement_unit" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.procurementUnit}" />
+          </div>
+
+          <div>
+            <label style="font-weight:600;">Tanggal Masuk</label>
+            <input id="entry_date" type="date" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.entryDate}" />
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#f97316',
+      preConfirm: () => {
+        const itemName = (
+          document.getElementById('item_name') as HTMLInputElement
+        ).value.trim()
+
+        const category = (
+          document.getElementById('category') as HTMLSelectElement
+        ).value
+
+        const procurementUnit = (
+          document.getElementById('procurement_unit') as HTMLInputElement
+        ).value.trim()
+
+        const entryDate = (
+          document.getElementById('entry_date') as HTMLInputElement
+        ).value
+
+        if (!itemName || !procurementUnit || !entryDate) {
+          Swal.showValidationMessage(
+            'Nama barang, unit pengadaan, dan tanggal masuk wajib diisi.'
+          )
+          return
+        }
+
+        return {
+          itemName,
+          category,
+          procurementUnit,
+          entryDate,
+        }
+      },
+    })
+
+    if (!result.isConfirmed || !result.value) return
+
+    try {
+      await updateInventoryItem({
+        item_id: row.itemId,
+        item_name: result.value.itemName,
+        category: result.value.category || null,
+        procurement_unit: result.value.procurementUnit,
+        entry_date: result.value.entryDate,
+      })
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Data barang berhasil diperbarui.',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      fetchDeposits()
+    } catch (error) {
+      console.error(error)
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Data barang gagal diperbarui.',
+        confirmButtonColor: '#ef4444',
+      })
+    }
+  }
+
+  async function handleDeleteItem(row: {
+    itemId: string
+    itemName: string
+  }) {
+    const confirmation = await Swal.fire({
+      icon: 'warning',
+      title: 'Hapus barang?',
+      html: `
+        <p>Barang <b>${row.itemName}</b> akan dihapus dari daftar penyimpanan.</p>
+        <p style="font-size:13px;color:#64748b;margin-top:8px;">
+          Barang yang sudah memiliki riwayat pengambilan tidak dapat dihapus.
+        </p>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    try {
+      await deleteInventoryItem(row.itemId)
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Barang berhasil dihapus.',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      fetchDeposits()
+    } catch (error) {
+      console.error(error)
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Barang gagal dihapus.',
+        confirmButtonColor: '#ef4444',
+      })
+    }
+  }
+
+  async function handleDeleteBatch(row: {
+    depositId: string
+    depositorName: string
+    itemName: string
+  }) {
+    const confirmation = await Swal.fire({
+      icon: 'warning',
+      title: 'Hapus batch penitipan?',
+      html: `
+        <div style="text-align:left">
+          <p>Batch milik <b>${row.depositorName}</b> akan dihapus.</p>
+          <p>Item terkait, QR batch, dan placement rak juga akan dihapus.</p>
+          <p style="font-size:13px;color:#64748b;margin-top:8px;">
+            Batch yang sudah memiliki riwayat pengambilan tidak dapat dihapus.
+          </p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus batch',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    try {
+      await deleteDepositBatch(row.depositId)
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Batch penitipan berhasil dihapus.',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      fetchDeposits()
+    } catch (error) {
+      console.error(error)
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Batch gagal dihapus.',
+        confirmButtonColor: '#ef4444',
+      })
+    }
+  }
 
   async function fetchDeposits() {
     try {
@@ -130,8 +359,9 @@ export default function AllDeposits() {
 
   const tableRows = useMemo<TableRow[]>(() => {
     return deposits.flatMap((deposit) => {
-      const placement = getActivePlacement<Placement>(deposit.placements)
-      const rackLocation = placement?.rack_locations ?? null
+      const placement = getActivePlacement(deposit.placements)
+      const rackLocation = placement?.rack_locations
+      const batchItemCount = deposit.items?.length ?? 0
 
       return deposit.items.map((item) => {
         const position = rackLocation ? formatRackLocation(rackLocation) : '-'
@@ -150,11 +380,15 @@ export default function AllDeposits() {
           remainingQuantity: item.remaining_quantity,
           procurementUnit: item.procurement_unit,
           position,
-          rackCode: rackLocation?.rack_code ?? '-',
-          rowNo: rackLocation?.row_no ? String(rackLocation.row_no) : '-',
           entryDate,
-          daysStored: getDaysSince(entryDate),
           status: deposit.status,
+          batchItemCount,
+
+          rackCode: rackLocation?.rack_code ?? '-',
+          rowNo: rackLocation
+            ? `Row ${rackLocation.row_no}`
+            : '-',
+          daysStored: getDaysSince(entryDate),
         }
       })
     })
@@ -505,15 +739,65 @@ export default function AllDeposits() {
                       </span>
                     </td>
 
-                    <td className="px-5 py-4 text-right">
-                      <button
-                        onClick={() =>
-                          navigate(`/admin/deposits/${row.depositId}/qr`)
-                        }
-                        className="font-semibold text-blue-600 hover:text-blue-800"
-                      >
-                        Detail
-                      </button>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/admin/deposits/${row.depositId}/qr`)}
+                          className="text-blue-600 font-semibold hover:underline"
+                        >
+                          Detail
+                        </button>
+
+                        {isSuperAdmin && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleEditItem({
+                                itemId: row.itemId,
+                                itemName: row.itemName,
+                                category: row.category,
+                                procurementUnit: row.procurementUnit,
+                                entryDate: row.entryDate,
+                              })
+                            }
+                            className="text-orange-600 font-semibold hover:underline"
+                          >
+                            Edit
+                          </button>
+
+                          {row.batchItemCount > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteItem({
+                                  itemId: row.itemId,
+                                  itemName: row.itemName,
+                                })
+                              }
+                              className="text-red-600 font-semibold hover:underline"
+                            >
+                              Delete Item
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteBatch({
+                                  depositId: row.depositId,
+                                  depositorName: row.depositorName,
+                                  itemName: row.itemName,
+                                })
+                              }
+                              className="text-red-600 font-semibold hover:underline"
+                            >
+                              Delete Batch
+                            </button>
+                          )}
+                        </>
+                      )}
+                      </div>
                     </td>
                   </tr>
                 ))

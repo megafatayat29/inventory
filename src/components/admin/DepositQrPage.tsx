@@ -179,6 +179,9 @@ export default function DepositQrPage() {
                   <th className="text-left p-3 border border-slate-200">
                     Kategori
                   </th>
+                  <th className="text-left p-3 border border-slate-200">
+                    Unit Pengadaan
+                  </th>
                 </tr>
               </thead>
 
@@ -197,6 +200,9 @@ export default function DepositQrPage() {
                     </td>
                     <td className="p-3 border border-slate-200">
                       {item.category || '-'}
+                    </td>
+                    <td className="p-3 border border-slate-200">
+                      {item.procurement_unit}
                     </td>
                   </tr>
                 ))}
