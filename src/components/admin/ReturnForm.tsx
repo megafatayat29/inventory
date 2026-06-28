@@ -493,7 +493,7 @@ export default function ReturnForm() {
             />
             {!remainingPhotoFile && (
               <p className="text-sm text-orange-600 mt-2">
-                * Foto awal barang wajib diupload sebelum submit.
+                * Foto sisa barang di rak wajib diupload sebelum submit.
               </p>
             )}
           </div>
