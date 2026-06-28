@@ -9,6 +9,14 @@ import { getActivePlacement } from '../../utils/getActivePlacement'
 import { uploadInventoryPhoto } from '../../services/photoService'
 import PhotoCapturePicker from '../common/PhotoCapturePicker'
 
+function getTodayDate() {
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function ReturnForm() {
   const [deposits, setDeposits] = useState<DepositRequest[]>([])
   const [selectedDepositId, setSelectedDepositId] = useState('')
@@ -22,6 +30,7 @@ export default function ReturnForm() {
   const [search, setSearch] = useState('')
   const [takenPhotoFile, setTakenPhotoFile] = useState<File | null>(null)
   const [remainingPhotoFile, setRemainingPhotoFile] = useState<File | null>(null)
+  const [returnDate, setReturnDate] = useState(getTodayDate())
 
   useEffect(() => {
     fetchDeposits()
@@ -124,25 +133,32 @@ export default function ReturnForm() {
     try {
       setSaving(true)
 
-      if (!takenPhotoFile || !remainingPhotoFile) {
+      if (!returnDate) {
         Swal.fire({
           icon: 'warning',
-          title: 'Foto belum lengkap',
-          text: 'Upload foto barang yang diambil dan foto sisa aktual.',
+          title: 'Tanggal keluar belum diisi',
+          text: 'Isi tanggal keluar barang terlebih dahulu.',
           confirmButtonColor: '#f97316',
         })
         return
       }
 
-      const takenPhotoPath = await uploadInventoryPhoto(
-        takenPhotoFile,
-        'return-taken'
-      )
+      let takenPhotoPath: string | null = null
+        let remainingPhotoPath: string | null = null
 
-      const remainingPhotoPath = await uploadInventoryPhoto(
-        remainingPhotoFile,
-        'return-remaining'
-      )
+        if (takenPhotoFile) {
+          takenPhotoPath = await uploadInventoryPhoto(
+            takenPhotoFile,
+            'return-taken'
+          )
+        }
+
+        if (remainingPhotoFile) {
+          remainingPhotoPath = await uploadInventoryPhoto(
+            remainingPhotoFile,
+            'return-remaining'
+          )
+        }
 
       await processItemReturn({
         deposit_request_id: selectedDepositId,
@@ -150,6 +166,7 @@ export default function ReturnForm() {
         returned_by_nipp: returnedByNipp,
         returned_by_unit: returnedByUnit,
         notes,
+        return_date: returnDate,
         taken_photo_path: takenPhotoPath,
         remaining_photo_path: remainingPhotoPath,
         items: itemsToReturn,
@@ -170,6 +187,7 @@ export default function ReturnForm() {
       setNotes('')
       setTakenPhotoFile(null)
       setRemainingPhotoFile(null)
+      setReturnDate(getTodayDate())
 
       fetchDeposits()
     } catch (error) {
@@ -336,6 +354,23 @@ export default function ReturnForm() {
               />
             </div>
 
+            <div className="md:col-span-2">
+              <label className="block font-semibold text-slate-700 mb-2">
+                Tanggal Keluar <span className="text-red-500">*</span>
+              </label>
+
+              <input
+                type="date"
+                value={returnDate}
+                onChange={(event) => setReturnDate(event.target.value)}
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <p className="text-xs text-slate-500 mt-2">
+                Tanggal aktual barang keluar dari gudang.
+              </p>
+            </div>
+
             {selectedDeposit && (
               <div className="md:col-span-2">
                 <div className="bg-slate-50 px-5 py-4 border-b border-slate-200">
@@ -470,32 +505,38 @@ export default function ReturnForm() {
           <div className="mt-6">
             <h3 className="text-lg font-bold text-slate-800 mb-2">
               Dokumentasi Pengambilan
+              <span className="text-sm font-normal text-slate-400"> (opsional)</span>
             </h3>
+
             <p className="text-slate-500 mb-4">
-              Upload foto barang yang diambil dan foto sisa barang aktual di rak.
+              Upload foto barang yang diambil dan foto sisa barang aktual di rak jika tersedia.
             </p>
 
-            <PhotoCapturePicker
-              file={takenPhotoFile}
-              onChange={setTakenPhotoFile}
-              required
-            />
-            {!takenPhotoFile && (
-              <p className="text-sm text-orange-600 mt-2">
-                * Foto awal barang wajib diupload sebelum submit.
-              </p>
-            )}
-            
-            <PhotoCapturePicker
-              file={remainingPhotoFile}
-              onChange={setRemainingPhotoFile}
-              required
-            />
-            {!remainingPhotoFile && (
-              <p className="text-sm text-orange-600 mt-2">
-                * Foto sisa barang di rak wajib diupload sebelum submit.
-              </p>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="font-semibold text-slate-700 mb-2">
+                  Foto Barang Diambil
+                  <span className="text-sm font-normal text-slate-400"> (opsional)</span>
+                </p>
+
+                <PhotoCapturePicker
+                  file={takenPhotoFile}
+                  onChange={setTakenPhotoFile}
+                />
+              </div>
+
+              <div>
+                <p className="font-semibold text-slate-700 mb-2">
+                  Foto Sisa Aktual di Rak
+                  <span className="text-sm font-normal text-slate-400"> (opsional)</span>
+                </p>
+
+                <PhotoCapturePicker
+                  file={remainingPhotoFile}
+                  onChange={setRemainingPhotoFile}
+                />
+              </div>
+            </div>
           </div>
 
           <button

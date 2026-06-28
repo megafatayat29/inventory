@@ -15,3 +15,14 @@ export type ExistingItem = {
   procurement_unit: string
   category: string
 }
+
+export type ReturnRecordItem = {
+  id: string
+  item_id: string
+  returned_quantity: number
+  remaining_after_return: number
+  items?: {
+    id: string
+    item_name: string
+  } | null
+}

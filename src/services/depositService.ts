@@ -98,7 +98,7 @@ export async function getDepositRequestDetail(id: string) {
           row_no,
           status
         )
-      )
+      ),
     `)
     .eq('id', id)
     .single()

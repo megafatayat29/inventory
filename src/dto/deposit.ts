@@ -59,8 +59,18 @@ export type DepositItem = {
 }
 
 export type ReturnItemPayload = {
-  item_id: string
-  returned_quantity: number
+  deposit_request_id: string
+  returned_by_name: string
+  returned_by_nipp?: string
+  returned_by_unit?: string
+  notes?: string
+  return_date: string
+  taken_photo_path?: string | null
+  remaining_photo_path?: string | null
+  items: {
+    item_id: string
+    returned_quantity: number
+  }[]
 }
 
 export type DepositDetail = {
