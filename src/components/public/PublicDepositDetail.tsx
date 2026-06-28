@@ -1,0 +1,221 @@
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Package, MapPin, User, CalendarDays } from 'lucide-react'
+import { getDepositRequestDetail } from '../../services/depositService'
+import { formatRackLocation } from '../../utils/formatRackLocation'
+import {
+  getDepositStatusClass,
+  getDepositStatusLabel,
+} from '../../utils/statusBadge'
+import { getActivePlacement } from '../../utils/getActivePlacement'
+import type { DepositDetail } from '../../dto/deposit'
+
+function getDaysSince(dateString: string) {
+  const start = new Date(dateString)
+  const now = new Date()
+  const diff = now.getTime() - start.getTime()
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)))
+}
+
+export default function PublicDepositDetail() {
+  const { depositRequestId } = useParams()
+  const [deposit, setDeposit] = useState<DepositDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDetail()
+  }, [depositRequestId])
+
+  async function fetchDetail() {
+    if (!depositRequestId) return
+
+    try {
+      setLoading(true)
+      const data = await getDepositRequestDetail(depositRequestId)
+      setDeposit(data as unknown as DepositDetail)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <p className="text-slate-500">Loading detail penitipan...</p>
+      </div>
+    )
+  }
+
+  if (!deposit) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 text-center max-w-md">
+          <h1 className="text-xl font-bold text-slate-800">
+            Data tidak ditemukan
+          </h1>
+          <p className="text-slate-500 mt-2">
+            QR tidak valid atau data penitipan sudah tidak tersedia.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const placement = getActivePlacement(deposit.placements)
+  const rackLocation = placement?.rack_locations
+  const daysInWarehouse = getDaysSince(deposit.created_at)
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+      <div className="bg-blue-900 text-white">
+        <div className="max-w-4xl mx-auto px-5 py-8">
+          <p className="text-orange-400 font-semibold">RakFat SIGAPQ Inventory</p>
+          <h1 className="text-3xl font-bold mt-1">Detail Penitipan Barang</h1>
+          <p className="text-blue-100 mt-2">
+            Informasi batch penitipan berdasarkan QR Code.
+          </p>
+        </div>
+      </div>
+
+      <main className="max-w-4xl mx-auto px-5 py-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b border-slate-200 pb-5">
+            <div>
+              <span
+                className={`px-3 py-1 text-xs font-semibold rounded-full ${getDepositStatusClass(
+                  deposit.status
+                )}`}
+              >
+                {getDepositStatusLabel(deposit.status)}
+              </span>
+
+              <h2 className="text-2xl font-bold text-slate-800 mt-4">
+                {deposit.depositor_name}
+              </h2>
+              <p className="text-slate-500">ID: {deposit.id}</p>
+            </div>
+
+            <div className="rounded-xl bg-blue-50 text-blue-800 px-4 py-3">
+              <p className="text-sm">Lama di Gudang</p>
+              <p className="text-2xl font-bold">{daysInWarehouse} hari</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
+                <User size={18} />
+                Identitas Penitip
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-700">
+                <p>
+                  <span className="font-semibold">Nama:</span>{' '}
+                  {deposit.depositor_name}
+                </p>
+                <p>
+                  <span className="font-semibold">NIPP:</span> {deposit.nipp}
+                </p>
+                <p>
+                  <span className="font-semibold">Jabatan:</span>{' '}
+                  {deposit.jabatan}
+                </p>
+                <p>
+                  <span className="font-semibold">Unit Kerja:</span>{' '}
+                  {deposit.unit_kerja}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-5">
+              <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
+                <MapPin size={18} />
+                Lokasi Rak
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-700">
+                <p>
+                  <span className="font-semibold">Lokasi:</span>{' '}
+                  {rackLocation
+                    ? formatRackLocation(rackLocation)
+                    : 'Belum diplot'}
+                </p>
+                <p>
+                  <span className="font-semibold">Tanggal Plot:</span>{' '}
+                  {placement?.placed_at
+                    ? new Date(placement.placed_at).toLocaleString('id-ID')
+                    : '-'}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 p-5 md:col-span-2">
+              <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
+                <CalendarDays size={18} />
+                Waktu Penitipan
+              </div>
+
+              <p className="text-sm text-slate-700">
+                <span className="font-semibold">Tanggal Submit:</span>{' '}
+                {new Date(deposit.created_at).toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
+              <Package size={18} />
+              Daftar Isi Barang
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border border-slate-200">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-700">
+                    <th className="text-left p-3 border border-slate-200">No</th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Nama Barang
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Jumlah
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Kategori
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Unit Pengadaan
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {deposit.items?.map((item, index) => (
+                    <tr key={item.id}>
+                      <td className="p-3 border border-slate-200">
+                        {index + 1}
+                      </td>
+                      <td className="p-3 border border-slate-200 font-medium">
+                        {item.item_name}
+                      </td>
+                      <td className="p-3 border border-slate-200">
+                        {item.quantity}
+                      </td>
+                      <td className="p-3 border border-slate-200">
+                        {item.category || '-'}
+                      </td>
+                      <td className="p-3 border border-slate-200">
+                        {item.procurement_unit}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
