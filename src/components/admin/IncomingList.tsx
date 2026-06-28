@@ -71,9 +71,7 @@ export default function IncomingList() {
                     <span className="px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
                       Pending
                     </span>
-                    <span className="text-xs text-slate-400">
-                      {new Date(request.created_at).toLocaleString('id-ID')}
-                    </span>
+  
                   </div>
 
                   <h3 className="text-xl font-bold text-slate-800 mt-3">
