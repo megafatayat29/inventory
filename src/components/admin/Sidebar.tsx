@@ -8,14 +8,24 @@ import {
   PackageCheck,
   UserCog,
   PlusSquare,
+  X,
 } from 'lucide-react'
-import { getRoleLabel } from '../../utils/getRoleLabel'
+
+type UserRole = 'super_admin' | 'warehouse_admin'
 
 type SidebarProps = {
-  role?: 'super_admin' | 'warehouse_admin'
+  role?: UserRole
+  onClose?: () => void
+  isMobile?: boolean
 }
 
-export default function Sidebar({ role }: SidebarProps) {
+function getRoleLabel(role?: UserRole) {
+  if (role === 'super_admin') return 'Super Admin'
+  if (role === 'warehouse_admin') return 'Warehouse Admin'
+  return 'Loading Role...'
+}
+
+export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
   const menus = [
     {
       label: 'Dashboard',
@@ -69,25 +79,42 @@ export default function Sidebar({ role }: SidebarProps) {
   ]
 
   return (
-    <aside className="w-72 min-h-screen bg-[#173A8A] text-white">
-      <div className="h-24 px-6 flex items-center border-b border-white/10">
-        <div>
-          <h2 className="text-2xl font-bold">RakFat SIGAPQ</h2>
-          <h4>Role login: </h4>
-          <span
-            className={[
-              'inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold',
-              role === 'super_admin'
-                ? 'bg-orange-500 text-white'
-                : 'bg-blue-100 text-blue-900',
-            ].join(' ')}
-          >
-            {getRoleLabel(role)}
-          </span>
+    <aside className="w-72 shrink-0 min-h-screen h-full bg-[#173A8A] text-white flex flex-col">
+      <div className="px-5 py-5 border-b border-white/10">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-2xl font-bold leading-tight">
+              RakFat SIGAPQ
+            </h2>
+
+            <p className="text-sm text-blue-100 mt-2">Role login:</p>
+
+            <span
+              className={[
+                'inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold',
+                role === 'super_admin'
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-blue-100 text-blue-900',
+              ].join(' ')}
+            >
+              {getRoleLabel(role)}
+            </span>
+          </div>
+
+          {isMobile && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20"
+              aria-label="Tutup menu"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
 
-      <nav className="p-4 space-y-2">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-2">
         {menus.map((menu) => {
           const Icon = menu.icon
 
@@ -95,21 +122,27 @@ export default function Sidebar({ role }: SidebarProps) {
             <NavLink
               key={menu.path}
               to={menu.path}
+              onClick={onClose}
               className={({ isActive }) =>
                 [
                   'flex items-center gap-3 px-4 py-3 rounded-xl transition',
+                  'text-sm font-semibold',
                   isActive
                     ? 'bg-orange-500 text-white shadow'
                     : 'text-blue-100 hover:bg-white/10 hover:text-white',
                 ].join(' ')
               }
             >
-              <Icon size={20} />
-              <span className="font-medium">{menu.label}</span>
+              <Icon size={20} className="shrink-0" />
+              <span className="leading-snug">{menu.label}</span>
             </NavLink>
           )
         })}
       </nav>
+
+      <div className="p-4 border-t border-white/10 text-xs text-blue-100">
+        Rakfat SIGAPQ Inventory System
+      </div>
     </aside>
   )
 }
