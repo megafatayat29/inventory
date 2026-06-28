@@ -10,11 +10,34 @@ import {
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { DepositDetail } from '../../dto/deposit'
 
+function getDateOnly(dateString: string) {
+  const date = new Date(dateString)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
+
 function getDaysSince(dateString: string) {
-  const start = new Date(dateString)
+  const start = getDateOnly(dateString)
   const now = new Date()
+  now.setHours(0, 0, 0, 0)
+
   const diff = now.getTime() - start.getTime()
   return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)))
+}
+
+function getDepositEntryDate(deposit: DepositDetail) {
+  const itemEntryDates =
+    deposit.items
+      ?.map((item) => item.entry_date)
+      .filter(Boolean) ?? []
+
+  if (itemEntryDates.length > 0) {
+    return itemEntryDates.sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    )[0]
+  }
+
+  return deposit.created_at
 }
 
 export default function PublicDepositDetail() {
@@ -65,7 +88,8 @@ export default function PublicDepositDetail() {
 
   const placement = getActivePlacement(deposit.placements)
   const rackLocation = placement?.rack_locations
-  const daysInWarehouse = getDaysSince(deposit.created_at)
+  const entryDate = getDepositEntryDate(deposit)
+  const daysInWarehouse = getDaysSince(entryDate)
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -142,12 +166,6 @@ export default function PublicDepositDetail() {
                     ? formatRackLocation(rackLocation)
                     : 'Belum diplot'}
                 </p>
-                <p>
-                  <span className="font-semibold">Tanggal Plot:</span>{' '}
-                  {placement?.placed_at
-                    ? new Date(placement.placed_at).toLocaleString('id-ID')
-                    : '-'}
-                </p>
               </div>
             </div>
 
@@ -157,10 +175,12 @@ export default function PublicDepositDetail() {
                 Waktu Penitipan
               </div>
 
-              <p className="text-sm text-slate-700">
-                <span className="font-semibold">Tanggal Submit:</span>{' '}
-                {new Date(deposit.created_at).toLocaleString('id-ID')}
-              </p>
+              <div className="space-y-2 text-sm text-slate-700">
+                <p>
+                  <span className="font-semibold">Tanggal Masuk:</span>{' '}
+                  {new Date(entryDate).toLocaleDateString('id-ID')}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -187,9 +207,11 @@ export default function PublicDepositDetail() {
                     <th className="text-left p-3 border border-slate-200">
                       Unit Pengadaan
                     </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Tanggal Masuk
+                    </th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {deposit.items?.map((item, index) => (
                     <tr key={item.id}>
@@ -207,6 +229,11 @@ export default function PublicDepositDetail() {
                       </td>
                       <td className="p-3 border border-slate-200">
                         {item.procurement_unit}
+                      </td>
+                      <td className="p-3 border border-slate-200">
+                        {item.entry_date
+                          ? new Date(item.entry_date).toLocaleDateString('id-ID')
+                          : '-'}
                       </td>
                     </tr>
                   ))}
