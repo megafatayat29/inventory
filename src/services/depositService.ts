@@ -61,7 +61,7 @@ export async function getPendingDepositRequests() {
   return data
 }
 
-export async function getDepositRequestDetail(id: string) {
+export async function getDepositRequestDetail(depositRequestId: string) {
   const { data, error } = await supabase
     .from('deposit_requests')
     .select(`
@@ -70,9 +70,9 @@ export async function getDepositRequestDetail(id: string) {
       nipp,
       jabatan,
       unit_kerja,
-      initial_photo_path,
       status,
       created_at,
+      initial_photo_path,
       items (
         id,
         item_name,
@@ -85,8 +85,8 @@ export async function getDepositRequestDetail(id: string) {
       ),
       placements (
         id,
-        is_active,
         placed_at,
+        is_active,
         placement_photo_path,
         rack_locations (
           id,
@@ -94,13 +94,37 @@ export async function getDepositRequestDetail(id: string) {
           section,
           slot_size,
           display_col_no,
+          medium_col_start,
+          medium_col_span,
           level_no,
           row_no,
           status
         )
       ),
+      return_records (
+        id,
+        deposit_request_id,
+        returned_by_name,
+        returned_by_nipp,
+        returned_by_unit,
+        notes,
+        return_date,
+        created_at,
+        taken_photo_path,
+        remaining_photo_path,
+        return_record_items (
+          id,
+          item_id,
+          returned_quantity,
+          remaining_after_return,
+          items (
+            id,
+            item_name
+          )
+        )
+      )
     `)
-    .eq('id', id)
+    .eq('id', depositRequestId)
     .single()
 
   if (error) throw error

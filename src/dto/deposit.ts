@@ -1,4 +1,4 @@
-import type { Item } from "./item.dto";
+import type { Item, ReturnRecord } from "./item.dto";
 import type { Placement } from "./placement.dto";
 
 export type DepositItemInput = {
@@ -82,5 +82,6 @@ export type DepositDetail = {
   status: string
   created_at: string
   items: Item[]
-  placements: Placement[]
+  placements: Placement[] | Placement | null
+  return_records?: ReturnRecord[]
 }
