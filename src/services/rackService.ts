@@ -31,24 +31,11 @@ export async function placeDepositRequestToRack(
   rackLocationId: string,
   placementPhotoPath: string
 ) {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError) throw userError
-  if (!user) throw new Error('User belum login')
-
-  const { data, error } = await supabase
-    .from('placements')
-    .insert({
-      deposit_request_id: depositRequestId,
-      rack_location_id: rackLocationId,
-      placement_photo_path: placementPhotoPath,
-      placed_by: user.id,
-    })
-    .select()
-    .single()
+  const { data, error } = await supabase.rpc('place_deposit_to_rack', {
+    p_deposit_request_id: depositRequestId,
+    p_rack_location_id: rackLocationId,
+    p_placement_photo_path: placementPhotoPath,
+  })
 
   if (error) throw error
 

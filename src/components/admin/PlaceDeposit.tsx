@@ -84,8 +84,6 @@ export default function PlaceDeposit() {
         placementPhotoPath
       )
 
-      await placeDepositRequestToRack(depositRequestId, selectedLocationId, placementPhotoPath)
-
       await Swal.fire({
         icon: 'success',
         title: 'Plotting Berhasil!',
