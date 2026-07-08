@@ -57,8 +57,17 @@ export default function PhotoGallery({ photos }: Props) {
           <div className="relative max-w-5xl w-full">
 
             <button
+              className="
+                absolute
+                top-3
+                right-3
+                w-11
+                h-11
+                rounded-full
+                text-white
+                backdrop-blur
+              "
               onClick={() => setSelected(null)}
-              className="absolute right-0 -top-12 text-white"
             >
               <X size={32} />
             </button>
