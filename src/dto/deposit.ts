@@ -84,4 +84,5 @@ export type DepositDetail = {
   items: Item[]
   placements: Placement[] | Placement | null
   return_records?: ReturnRecord[]
+  initial_photo_path: string
 }

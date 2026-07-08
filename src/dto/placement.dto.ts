@@ -7,4 +7,5 @@ export type Placement = {
   placed_at: string
   rack_locations: RackLocation | null
   deposit_requests: DepositRequest | null
+  placement_photo_path: string | null
 }

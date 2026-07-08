@@ -10,6 +10,8 @@ import {
 } from '../../utils/statusBadge'
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { DepositDetail } from '../../dto/deposit'
+import PhotoGallery from '../common/PhotoGallery'
+import { getPublicImage } from '../../utils/getPublicImage'
 
 function formatDate(dateString?: string | null) {
   if (!dateString) return '-'
@@ -68,6 +70,34 @@ export default function DepositQrPage() {
   const qrUrl = `${window.location.origin}/deposit/${deposit.id}`
   const placement = getActivePlacement(deposit.placements)
   const rackLocation = placement?.rack_locations
+  console.log('deposit', deposit);
+  const gallery = [
+    ...(deposit.initial_photo_path
+      ? [{
+          title: 'Foto Penitipan',
+          image: getPublicImage(deposit.initial_photo_path),
+          subtitle: 'Diupload oleh Penitip',
+        }]
+      : []),
+
+    ...(placement?.placement_photo_path
+      ? [{
+          title: 'Foto Setelah Plot',
+          image: getPublicImage(placement.placement_photo_path),
+          subtitle: 'Diupload Admin Gudang',
+        }]
+      : []),
+
+    ...(deposit.return_records ?? []).flatMap((record, index) =>
+      record.taken_photo_path
+        ? [{
+            title: `Pengambilan #${index + 1}`,
+            image: getPublicImage(record.taken_photo_path),
+            subtitle: record.return_date,
+          }]
+        : []
+    ),
+  ]
 
   return (
     <div>
@@ -225,6 +255,8 @@ export default function DepositQrPage() {
               </tbody>
             </table>
           </div>
+
+          <PhotoGallery photos={gallery} />
 
           <div className="mt-6 border-t border-slate-200 pt-5">
             <h3 className="font-bold text-slate-900 mb-3">
