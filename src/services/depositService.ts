@@ -14,12 +14,22 @@ export async function createDepositRequest(payload: DepositRequestInput) {
     entry_date: item.entry_date,
   }))
 
+  // const { data, error } = await supabase.rpc('create_deposit_with_items', {
+  //   p_depositor_name: payload.depositor_name,
+  //   p_nipp: payload.nipp,
+  //   p_jabatan: payload.jabatan,
+  //   p_unit_kerja: payload.unit_kerja,
+  //   p_initial_photo_path: payload.initial_photo_path,
+  //   p_items: itemsPayload,
+  // })
+  
   const { data, error } = await supabase.rpc('create_deposit_with_items', {
     p_depositor_name: payload.depositor_name,
     p_nipp: payload.nipp,
     p_jabatan: payload.jabatan,
     p_unit_kerja: payload.unit_kerja,
     p_initial_photo_path: payload.initial_photo_path,
+    p_deposit_type: payload.deposit_type,
     p_items: itemsPayload,
   })
 

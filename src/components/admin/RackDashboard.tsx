@@ -225,9 +225,10 @@ function RackSection({
                         : 'bg-red-500 hover:bg-red-600',
                     ].join(' ')}
                   >
+                    {/* nama rak yg tampil di UI */}
                     <div className="pr-4 truncate">
                       {location.slot_size === 'L'
-                        ? `R${location.row_no}`
+                        ? `A${location.row_no}`
                         : `T${location.level_no}-R${location.row_no}`}
                     </div>
 

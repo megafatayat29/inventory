@@ -15,6 +15,7 @@ export type DepositRequestInput = {
   jabatan: string;
   unit_kerja: string;
   initial_photo_path: string;
+  deposit_type: string;
   items: DepositItemInput[];
 };
 
@@ -86,3 +87,12 @@ export type DepositDetail = {
   return_records?: ReturnRecord[]
   initial_photo_path: string
 }
+
+export const DepositType = {
+  Barang: 'barang',
+  Limbah: 'limbah',
+  BarangBekes: 'barang_bekas',
+  BBMPelumas: 'bbm_pelumas',
+} as const;
+
+export type DepositType = typeof DepositType[keyof typeof DepositType];

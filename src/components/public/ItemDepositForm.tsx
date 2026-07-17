@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Save, Package, User } from 'lucide-react';
+import { Plus, Trash2, Save, Package, User, Archive, Fuel, Recycle } from 'lucide-react';
 import { createDepositRequest } from '../../services/depositService';
-import type { DepositUserForm, DepositItemForm } from '../../dto/deposit';
+import type { DepositUserForm, DepositItemForm, DepositType } from '../../dto/deposit';
 import Swal from "sweetalert2";
 import { uploadInventoryPhoto } from '../../services/photoService';
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
+import LimbahForm from './components/LimbahForm';
+import BarangBekasForm from './components/BarangBekasForm';
 
 export default function ItemDepositForm() {
+  const [depositType, setDepositType] = useState<DepositType | null>(null)
   // Fungsi untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD
   const getTodayDate = () => {
     const today = new Date();
@@ -15,6 +18,33 @@ export default function ItemDepositForm() {
     const dd = String(today.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
+
+  const depositTypes = [
+    {
+      value: "barang",
+      title: "Barang",
+      icon: Package,
+      description: "Barang inventaris yang akan disimpan di rak.",
+    },
+    {
+      value: "limbah",
+      title: "Limbah",
+      icon: Recycle,
+      description: "Limbah B3 maupun non-B3.",
+    },
+    {
+      value: "barang_bekas",
+      title: "Barang Bekas",
+      icon: Archive,
+      description: "Barang bekas yang masih disimpan.",
+    },
+    {
+      value: "bbm_pelumas",
+      title: "BBM & Pelumas",
+      icon: Fuel,
+      description: "BBM, oli, grease, dan pelumas.",
+    },
+  ]
 
   // State untuk Identitas User
   const [user, setUser] = useState<DepositUserForm>({
@@ -113,6 +143,7 @@ export default function ItemDepositForm() {
         jabatan: user.jabatan,
         unit_kerja: user.unitKerja,
         initial_photo_path: initialPhotoPath,
+        deposit_type: 'barang',
         items: items.map((item) => ({
           item_name: item.namaBarang,
           quantity: Number(item.jumlah),
@@ -168,7 +199,7 @@ export default function ItemDepositForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 sm:p-8">
-          
+
           {/* Bagian 1: Identitas User */}
           <div className="mb-10">
             <h2 className="text-lg font-semibold text-gray-900 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
@@ -234,196 +265,228 @@ export default function ItemDepositForm() {
               </div>
             </div>
           </div>
-
-          {/* Bagian 2: Daftar Barang */}
-          <div>
-            <div className="flex justify-between items-center border-b-2 border-gray-200 pb-2 mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#1e3a8a]" />
-                Daftar Barang yang Dititipkan
+          {!depositType && (
+            <div className="p-8">
+              <h2 className="text-2xl font-bold text-center">
+                Pilih Jenis Penitipan
               </h2>
-            </div>
-
-            <div className="space-y-6">
-              {items.map((item, index) => (
-                <div key={item.id} className="bg-gray-50 p-5 rounded-lg border border-gray-200 relative group">
-                  <div className="absolute top-4 right-4">
-                    {items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors bg-white p-1 rounded-md shadow-sm border border-gray-200"
-                        title="Hapus Barang"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  
-                  <div className="mb-4">
-                     <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded font-semibold tracking-wide">
-                        Barang #{index + 1}
-                     </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nama Barang <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="namaBarang"
-                        value={item.namaBarang}
-                        onChange={(e) => handleItemChange(item.id, e)}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
-                        placeholder="Deskripsi nama barang"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Jumlah <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        name="jumlah"
-                        value={item.jumlah}
-                        onChange={(e) => handleItemChange(item.id, e)}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
-                        placeholder="Kuantitas"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Unit Pengadaan <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="unitPengadaan"
-                        value={item.unitPengadaan}
-                        onChange={(e) => handleItemChange(item.id, e)}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
-                        placeholder="Asal unit/divisi"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Kategori Barang
-                      </label>
-                      <select
-                        name="kategori"
-                        value={item.kategori}
-                        onChange={(e) => handleItemChange(item.id, e)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a] bg-white"
-                      >
-                        <option value="">-- Pilih Kategori --</option>
-                        <option value="Gampang Pecah">Gampang Pecah (Fragile)</option>
-                        <option value="Tidak boleh panas">Tidak boleh panas (Cool)</option>
-                        <option value="Normal">Normal / Standar</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
-                        <span>Tanggal Masuk <span className="text-red-500">*</span></span>
-                      </label>
-                      <div className="relative">
-                         <input
-                           type="date"
-                           name="tanggalMasuk"
-                           value={item.tanggalMasuk}
-                           onChange={(e) => handleItemChange(item.id, e)}
-                           required
-                           max={getTodayDate()}
-                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
-                         />
-                      </div>
-                      {/* <div className="mt-2 text-sm flex items-center text-blue-700 font-medium bg-blue-50 p-1.5 rounded">
-                        <CalendarClock className="w-4 h-4 mr-1.5" />
-                        Lama di gudang: <span className="ml-1 text-orange-600 font-bold text-base">{hitungLamaHari(item.tanggalMasuk)}</span> hari
-                      </div> */}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleAddItem}
-              className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#1e3a8a] bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a]"
-            >
-              <Plus className="w-4 h-4" />
-              Tambah Barang Lain
-            </button>
-          </div>
-
-          {/* <div className="mt-8">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Foto Awal Barang
-            </h3>
-            <p className="text-slate-500 mb-4">
-              Upload atau ambil foto kondisi barang saat diserahkan.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <PhotoUploadBox
-                label="Kamera"
-                mode="camera"
-                file={initialPhotoFile}
-                onChange={setInitialPhotoFile}
-                required
-              />
-
-              <PhotoUploadBox
-                label="Upload Gambar"
-                mode="upload"
-                file={initialPhotoFile}
-                onChange={setInitialPhotoFile}
-                required
-              />
-            </div>
-          </div> */}
-
-          <div className="mt-8">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Foto Awal Barang
-            </h3>
-            <p className="text-slate-500 mb-4">
-              Upload atau ambil foto kondisi barang saat diserahkan.
-            </p>
-
-            <PhotoCapturePicker
-              file={initialPhotoFile}
-              onChange={setInitialPhotoFile}
-              required
-            />
-            {!initialPhotoFile && (
-              <p className="text-sm text-orange-600 mt-2">
-                * Foto awal barang wajib diupload sebelum submit.
+              <p className="text-slate-500 text-center mt-2">
+                Jenis penitipan akan menentukan formulir yang harus diisi.
               </p>
-            )}
-          </div>
-
-          {/* Footer / Submit */}
-          <div className="mt-10 pt-5 border-t border-gray-200 flex items-center justify-between">
+              <div className="grid md:grid-cols-2 gap-5 mt-8">
+                {depositTypes.map((type)=>{
+                  const Icon=type.icon
+                  return(
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={()=>setDepositType(type.value as DepositType)}
+                      className="
+                        rounded-2xl
+                        border
+                        p-6
+                        hover:border-orange-500
+                        hover:shadow-lg
+                        transition
+                        text-left
+                      "
+                    >
+                      <Icon
+                        className="text-orange-500 mb-4"
+                        size={36}
+                      />
+                      <h3 className="font-bold text-lg">
+                        {type.title}
+                      </h3>
+                      <p className="text-slate-500 mt-2">
+                        {type.description}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {/* Bagian 2: Daftar Barang */}
+          {depositType && (
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="ml-auto flex items-center gap-2 px-6 py-3 bg-[#1e3a8a] text-white font-semibold rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a] shadow-md transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                type="button"
+                onClick={()=>setDepositType(null)}
+                className="mb-6 text-blue-700"
             >
-              <Save className="w-5 h-5" />
-              {isSubmitting ? 'Mengirim...' : 'Simpan Data Penitipan'}
+            ← Ganti Jenis Penitipan
             </button>
-          </div>
+          )}
+          {depositType === 'barang' && (
+            <>
+              <div>
+                <div className="flex justify-between items-center border-b-2 border-gray-200 pb-2 mb-4">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Package className="w-5 h-5 text-[#1e3a8a]" />
+                    Daftar Barang yang Dititipkan
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
+                  {items.map((item, index) => (
+                    <div key={item.id} className="bg-gray-50 p-5 rounded-lg border border-gray-200 relative group">
+                      <div className="absolute top-4 right-4">
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors bg-white p-1 rounded-md shadow-sm border border-gray-200"
+                            title="Hapus Barang"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded font-semibold tracking-wide">
+                          Barang #{index + 1}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="lg:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nama Barang <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="namaBarang"
+                            value={item.namaBarang}
+                            onChange={(e) => handleItemChange(item.id, e)}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
+                            placeholder="Deskripsi nama barang" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Jumlah <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            name="jumlah"
+                            value={item.jumlah}
+                            onChange={(e) => handleItemChange(item.id, e)}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
+                            placeholder="Kuantitas" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Unit Pengadaan <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="unitPengadaan"
+                            value={item.unitPengadaan}
+                            onChange={(e) => handleItemChange(item.id, e)}
+                            required
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]"
+                            placeholder="Asal unit/divisi" />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Kategori Barang
+                          </label>
+                          <select
+                            name="kategori"
+                            value={item.kategori}
+                            onChange={(e) => handleItemChange(item.id, e)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a] bg-white"
+                          >
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="Gampang Pecah">Gampang Pecah (Fragile)</option>
+                            <option value="Tidak boleh panas">Tidak boleh panas (Cool)</option>
+                            <option value="Normal">Normal / Standar</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
+                            <span>Tanggal Masuk <span className="text-red-500">*</span></span>
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="date"
+                              name="tanggalMasuk"
+                              value={item.tanggalMasuk}
+                              onChange={(e) => handleItemChange(item.id, e)}
+                              required
+                              max={getTodayDate()}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#1e3a8a] focus:border-[#1e3a8a]" />
+                          </div>
+                          {/* <div className="mt-2 text-sm flex items-center text-blue-700 font-medium bg-blue-50 p-1.5 rounded">
+                <CalendarClock className="w-4 h-4 mr-1.5" />
+                Lama di gudang: <span className="ml-1 text-orange-600 font-bold text-base">{hitungLamaHari(item.tanggalMasuk)}</span> hari
+              </div> */}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="mt-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#1e3a8a] bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a]"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Barang Lain
+                </button>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-xl font-bold text-slate-800 mb-2">
+                  Foto Awal Barang
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Upload atau ambil foto kondisi barang saat diserahkan.
+                </p>
+
+                <PhotoCapturePicker
+                  file={initialPhotoFile}
+                  onChange={setInitialPhotoFile}
+                  required />
+                {!initialPhotoFile && (
+                  <p className="text-sm text-orange-600 mt-2">
+                    * Foto awal barang wajib diupload sebelum submit.
+                  </p>
+                )}
+              </div>
+              {/* Footer / Submit */}
+              <div className="mt-10 pt-5 border-t border-gray-200 flex items-center justify-between">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="ml-auto flex items-center gap-2 px-6 py-3 bg-[#1e3a8a] text-white font-semibold rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a] shadow-md transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-5 h-5" />
+                  {isSubmitting ? 'Mengirim...' : 'Simpan Data Penitipan'}
+                </button>
+              </div>
+            </>
+          )}
+          {depositType}
           
+          {depositType==="limbah" && (
+            <LimbahForm />
+          )}
+
+          {depositType==="barang_bekas" && (
+            <BarangBekasForm/>
+          )}
+
+          {depositType==="bbm_pelumas" && (
+            <BBMForm/>
+          )}
         </form>
       </div>
     </div>
