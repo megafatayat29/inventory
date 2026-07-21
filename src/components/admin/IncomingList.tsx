@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Inbox, Package, MapPin } from 'lucide-react'
 import { getPendingDepositRequests } from '../../services/depositService'
-import type { DepositRequest } from '../../dto/deposit'
+import type { DepositRequest } from '../../dto/deposit.dto'
 
 export default function IncomingList() {
   const navigate = useNavigate()

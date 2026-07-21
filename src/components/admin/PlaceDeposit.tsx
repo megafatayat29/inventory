@@ -8,7 +8,7 @@ import {
 } from '../../services/rackService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import Swal from 'sweetalert2'
-import type { DepositDetail } from '../../dto/deposit'
+import type { DepositDetail } from '../../dto/deposit.dto'
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
 import { uploadInventoryPhoto } from '../../services/photoService'
 import type { RackLocation } from '../../dto/rack.dto'

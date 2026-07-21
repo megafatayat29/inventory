@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Package, MapPin, User, CalendarDays } from 'lucide-react'
+import { Package, MapPin, User, CalendarDays, Archive } from 'lucide-react'
 import { getDepositRequestDetail } from '../../services/depositService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import {
@@ -8,7 +8,9 @@ import {
   getDepositStatusLabel,
 } from '../../utils/statusBadge'
 import { getActivePlacement } from '../../utils/getActivePlacement'
-import type { DepositDetail } from '../../dto/deposit'
+import type { DepositDetail } from '../../dto/deposit.dto'
+import { getOutbound } from '../../utils/getOutbound'
+import { getLastReturnDate } from '../../utils/getLastReturnDate'
 
 function getDateOnly(dateString: string) {
   const date = new Date(dateString)
@@ -199,7 +201,13 @@ export default function PublicDepositDetail() {
                       Nama Barang
                     </th>
                     <th className="text-left p-3 border border-slate-200">
-                      Jumlah
+                      Inbound
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Outbound
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Sisa
                     </th>
                     <th className="text-left p-3 border border-slate-200">
                       Kategori
@@ -209,6 +217,9 @@ export default function PublicDepositDetail() {
                     </th>
                     <th className="text-left p-3 border border-slate-200">
                       Tanggal Masuk
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Tanggal Pengambilan Terakhir
                     </th>
                   </tr>
                 </thead>
@@ -225,6 +236,12 @@ export default function PublicDepositDetail() {
                         {item.quantity}
                       </td>
                       <td className="p-3 border border-slate-200">
+                        {deposit.return_records ? getOutbound(item.id, deposit.return_records) : '-'}
+                      </td>
+                      <td className="p-3 border border-slate-200">
+                        {item.remaining_quantity}
+                      </td>
+                      <td className="p-3 border border-slate-200">
                         {item.category || '-'}
                       </td>
                       <td className="p-3 border border-slate-200">
@@ -235,8 +252,65 @@ export default function PublicDepositDetail() {
                           ? new Date(item.entry_date).toLocaleDateString('id-ID')
                           : '-'}
                       </td>
+                      <td>{deposit.return_records ? getLastReturnDate(item.id, deposit.return_records) : ''}</td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <div className="flex items-center gap-2 text-blue-800 font-semibold mb-3">
+              <Archive size={18} />
+              Riwayat Pengambilan
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border border-slate-200">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-700">
+                    <th className="text-left p-3 border border-slate-200">No</th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Tanggal
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Nama Barang
+                    </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Qty
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deposit.return_records
+                    ?.flatMap((record) =>
+                      (record.return_record_items ?? []).map((detail) => ({
+                        id: detail.id,
+                        returnDate: record.return_date,
+                        itemName: detail.items?.item_name ?? "-",
+                        qty: detail.returned_quantity,
+                      }))
+                    )
+                    .map((row, index) => (
+                      <tr key={row.id}>
+                        <td className="p-3 border border-slate-200">
+                          {index + 1}
+                        </td>
+
+                        <td className="p-3 border border-slate-200">
+                          {new Date(row.returnDate).toLocaleDateString("id-ID")}
+                        </td>
+
+                        <td className="p-3 border border-slate-200">
+                          {row.itemName}
+                        </td>
+
+                        <td className="p-3 border border-slate-200">
+                          {row.qty}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>

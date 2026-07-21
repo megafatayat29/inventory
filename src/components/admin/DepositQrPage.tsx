@@ -9,7 +9,7 @@ import {
   getDepositStatusLabel,
 } from '../../utils/statusBadge'
 import { getActivePlacement } from '../../utils/getActivePlacement'
-import type { DepositDetail } from '../../dto/deposit'
+import type { DepositDetail } from '../../dto/deposit.dto'
 import PhotoGallery from '../common/PhotoGallery'
 import { getPublicImage } from '../../utils/getPublicImage'
 
@@ -193,8 +193,8 @@ export default function DepositQrPage() {
                   {deposit.unit_kerja}
                 </p>
                 <p>
-                  <span className="font-semibold">Tanggal Submit:</span>{' '}
-                  {formatDateTime(deposit.created_at)}
+                  <span className="font-semibold">Tanggal Masuk:</span>{' '}
+                  {formatDateTime(deposit.items[0].entry_date)}
                 </p>
                 <p>
                   <span className="font-semibold">Lokasi Rak:</span>{' '}
@@ -223,6 +223,9 @@ export default function DepositQrPage() {
                     Sisa Gudang
                   </th>
                   <th className="text-left p-3 border border-slate-200">
+                    Satuan
+                  </th>
+                  <th className="text-left p-3 border border-slate-200">
                     Kategori
                   </th>
                   <th className="text-left p-3 border border-slate-200">
@@ -243,6 +246,9 @@ export default function DepositQrPage() {
                     </td>
                     <td className="p-3 border border-slate-200">
                       {item.remaining_quantity}
+                    </td>
+                    <td className="p-3 border border-slate-200">
+                      Piece/s
                     </td>
                     <td className="p-3 border border-slate-200">
                       {item.category || '-'}

@@ -13,47 +13,7 @@ import { getMyProfile } from '../../services/authService'
 import type { Profile } from '../../dto/user.dto'
 import { deleteInventoryItem, updateInventoryItem } from '../../services/itemService'
 import Swal from 'sweetalert2'
-
-type RackLocation = {
-  id: string
-  rack_code: string
-  section: 'FULL' | 'LEFT' | 'RIGHT'
-  slot_size: 'M' | 'L'
-  display_col_no: number
-  level_no: number
-  row_no: number
-  status: string
-}
-
-type Placement = {
-  id: string
-  is_active?: boolean
-  placed_at: string
-  rack_locations: RackLocation | null
-}
-
-type Item = {
-  id: string
-  item_name: string
-  quantity: number
-  remaining_quantity: number
-  procurement_unit: string
-  category: string | null
-  entry_date: string
-  status: string
-}
-
-type DepositRequest = {
-  id: string
-  depositor_name: string
-  nipp: string
-  jabatan: string
-  unit_kerja: string
-  status: string
-  created_at: string
-  items: Item[]
-  placements: Placement[] | Placement | null
-}
+import type { DepositRequest } from '../../dto/deposit.dto'
 
 type TableRow = {
   depositId: string

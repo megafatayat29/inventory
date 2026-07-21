@@ -1,4 +1,4 @@
-import type { DepositRequest } from "./deposit"
+import type { DepositRequest } from "./deposit.dto"
 import type { RackLocation } from "./rack.dto"
 
 export type Placement = {

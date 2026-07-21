@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Save, Package, User } from 'lucide-react';
 import { createDepositRequest } from '../../services/depositService';
-import type { DepositUserForm, DepositItemForm } from '../../dto/deposit';
+import type { DepositUserForm, DepositItemForm } from '../../dto/deposit.dto';
 import Swal from "sweetalert2";
 import { uploadInventoryPhoto } from '../../services/photoService';
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
