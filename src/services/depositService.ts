@@ -1,4 +1,4 @@
-import type { DepositRequestInput } from "../dto/deposit";
+import type { DepositItemInput, DepositRequestInput } from "../dto/deposit.dto";
 import { supabase } from "../lib/supabase";
 
 export async function createDepositRequest(payload: DepositRequestInput) {
@@ -6,7 +6,7 @@ export async function createDepositRequest(payload: DepositRequestInput) {
     throw new Error('Minimal harus ada satu barang yang dititipkan')
   }
 
-  const itemsPayload = payload.items.map((item) => ({
+  const itemsPayload = payload.items.map((item: DepositItemInput) => ({
     item_name: item.item_name,
     quantity: Number(item.quantity),
     procurement_unit: item.procurement_unit,
