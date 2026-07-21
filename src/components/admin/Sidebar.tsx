@@ -9,6 +9,9 @@ import {
   UserCog,
   PlusSquare,
   X,
+  Trash2,
+  Fuel,
+  Recycle,
 } from 'lucide-react'
 import kaiLogo from '../../assets/kai.png'
 import lrtLogo from '../../assets/lrt.png'
@@ -43,6 +46,21 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       label: 'List All Barang',
       path: '/admin/deposits',
       icon: Boxes,
+    },
+    {
+      label: 'List Limbah',
+      path: '/admin/waste',
+      icon: Trash2,
+    },
+    {
+      label: 'List Barang Bekas',
+      path: '/admin/used-goods',
+      icon: Recycle,
+    },
+    {
+      label: 'List BBM dan Pelumas',
+      path: '/admin/fuel',
+      icon: Fuel,
     },
     {
       label: 'Dashboard Rak',
