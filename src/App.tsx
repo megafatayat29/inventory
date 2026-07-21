@@ -18,6 +18,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AddExistingDeposit from './components/admin/AddExistingDeposit'
 import ManageAdmins from './components/admin/ManageAdmin'
 import PublicFormQrPage from './components/admin/PublicFormQrCode'
+import ResetPassword from './components/login/ResetPassword'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/deposit/:depositRequestId" element={<PublicDepositDetail />} />
         <Route path="/rack/:rackLocationId" element={<PublicRackDetail />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>

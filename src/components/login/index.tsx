@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMyProfile, loginAdmin } from '../../services/authService'
+import { getMyProfile, loginAdmin, requestPasswordReset } from '../../services/authService'
 import { supabase } from '../../lib/supabase'
 import Swal from 'sweetalert2'
 import kaiLogo from '../../assets/kai.png';
@@ -42,6 +42,37 @@ function LoginPage() {
         title: 'Gagal',
         text: error instanceof Error ? error.message
           : 'Login gagal. Silakan coba lagi.',
+        confirmButtonColor: '#ef4444',
+      })
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    const { value: emailInput } = await Swal.fire({
+      title: 'Reset Password',
+      input: 'email',
+      inputLabel: 'Masukkan email akun admin kamu',
+      inputPlaceholder: 'email@contoh.com',
+      showCancelButton: true,
+      confirmButtonText: 'Kirim Link Reset',
+      confirmButtonColor: '#2563eb',
+    })
+
+    if (!emailInput) return
+
+    try {
+      await requestPasswordReset(emailInput)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Terkirim',
+        text: 'Cek email kamu untuk link reset password.',
+        confirmButtonColor: '#2563eb',
+      })
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: error instanceof Error ? error.message : 'Gagal mengirim email reset.',
         confirmButtonColor: '#ef4444',
       })
     }
@@ -187,7 +218,7 @@ function LoginPage() {
                 />
                 Remember me
               </label>
-              <a href="#" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '14px' }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleForgotPassword() }} style={{ color: '#2563eb', textDecoration: 'none', fontSize: '14px' }}>
                 Forgot password?
               </a>
             </div>
