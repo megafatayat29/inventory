@@ -5,6 +5,8 @@ import { getRackLocationDetail } from '../../services/rackService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { RackLocationDetail } from '../../dto/rack.dto'
+import kaiLogo from '../../assets/kai.png'
+import lrtLogo from '../../assets/lrt.png'
 
 export default function PublicRackDetail() {
   const { rackLocationId } = useParams()
@@ -58,12 +60,20 @@ export default function PublicRackDetail() {
   return (
     <div className="min-h-screen bg-slate-100">
       <div className="bg-blue-900 text-white">
-        <div className="max-w-4xl mx-auto px-5 py-8">
-          <p className="text-orange-400 font-semibold">Rakfat SIGAPQ Inventory</p>
-          <h1 className="text-3xl font-bold mt-1">Detail Rak</h1>
-          <p className="text-blue-100 mt-2">
-            Informasi isi slot rak berdasarkan QR Code.
-          </p>
+        <div className="max-w-4xl mx-auto px-5 py-8 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-orange-400 font-semibold">Rakfat SIGAPQ Inventory</p>
+            <h1 className="text-3xl font-bold mt-1">Detail Rak</h1>
+            <p className="text-blue-100 mt-2">
+              Informasi isi slot rak berdasarkan QR Code.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm shrink-0">
+            <img src={kaiLogo} alt="Logo KAI" className="h-9 w-auto object-contain" />
+            <div className="w-px h-8 bg-gray-300" />
+            <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-9 w-auto object-contain" />
+          </div>
         </div>
       </div>
 

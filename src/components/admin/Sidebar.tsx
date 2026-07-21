@@ -10,6 +10,8 @@ import {
   PlusSquare,
   X,
 } from 'lucide-react'
+import kaiLogo from '../../assets/kai.png'
+import lrtLogo from '../../assets/lrt.png'
 
 type UserRole = 'super_admin' | 'warehouse_admin'
 
@@ -140,8 +142,15 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10 text-xs text-blue-100">
-        Rakfat SIGAPQ Inventory System
+      <div className="p-4 border-t border-white/10">
+        <div className="flex items-center justify-center gap-3 bg-white rounded-lg px-3 py-2 mb-3">
+          <img src={kaiLogo} alt="Logo KAI" className="h-7 w-auto object-contain" />
+          <div className="w-px h-6 bg-gray-300" />
+          <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-7 w-auto object-contain" />
+        </div>
+        <p className="text-xs text-blue-100 text-center">
+          Rakfat SIGAPQ Inventory System
+        </p>
       </div>
     </aside>
   )

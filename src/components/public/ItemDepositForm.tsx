@@ -5,6 +5,8 @@ import type { DepositUserForm, DepositItemForm } from '../../dto/deposit.dto';
 import Swal from "sweetalert2";
 import { uploadInventoryPhoto } from '../../services/photoService';
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
+import kaiLogo from '../../assets/kai.png';
+import lrtLogo from '../../assets/lrt.png';
 
 export default function ItemDepositForm() {
   // Fungsi untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD
@@ -159,12 +161,16 @@ export default function ItemDepositForm() {
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8 font-sans text-gray-800">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border-t-8 border-orange-500">
         {/* Header */}
-        <div className="bg-[#1e3a8a] px-6 py-5 text-white flex items-center justify-between">
+        <div className="bg-[#1e3a8a] px-6 py-5 text-white flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">Form Penitipan Barang</h1>
             <p className="text-blue-100 text-sm mt-1">Gudang Logistik Unit Kerja</p>
           </div>
-          <Package className="w-10 h-10 text-orange-400" />
+          <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm shrink-0">
+            <img src={kaiLogo} alt="Logo KAI" className="h-9 w-auto object-contain" />
+            <div className="w-px h-8 bg-gray-300" />
+            <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-9 w-auto object-contain" />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 sm:p-8">

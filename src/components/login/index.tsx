@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { getMyProfile, loginAdmin } from '../../services/authService'
 import { supabase } from '../../lib/supabase'
 import Swal from 'sweetalert2'
+import kaiLogo from '../../assets/kai.png';
+import lrtLogo from '../../assets/lrt.png';
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -65,8 +67,23 @@ function LoginPage() {
           borderRadius: '16px',
           boxShadow: '0 15px 35px rgba(15, 23, 42, 0.12)',
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <img src={kaiLogo} alt="Logo KAI" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
+          <div style={{ width: '1px', height: '24px', background: '#e2e8f0' }} />
+          <img src={lrtLogo} alt="Logo LRT Jabodebek" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
+        </div>
         <div
           style={{
             padding: '32px 32px 20px',
@@ -210,62 +227,10 @@ function LoginPage() {
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', textAlign: 'center', color: '#64748b' }}>
-            <p style={{ marginBottom: '12px' }}>- OR -</p>
-            <div style={{ display: 'grid', gap: '10px' }}>
-              <button
-                type="button"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '11px 14px',
-                  background: '#1877f2',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                  <path d="M13.5 20v-7h2.4l.4-2.8h-2.8V3.8c0-.8.2-1.4 1.4-1.4H16V.1c-.2 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.7v2.1H8v2.8h2.4v7h3.1z" />
-                </svg>
-                Sign in using Facebook
-              </button>
-              <button
-                type="button"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '11px 14px',
-                  background: '#dc2626',
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                }}
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                  <path d="M12 3a9 9 0 1 0 9 9h-9V3z" />
-                  <path d="M21 12a9 9 0 0 0-9-9v4.5A4.5 4.5 0 0 1 16.5 12" />
-                </svg>
-                Sign in using Google
-              </button>
-            </div>
-          </div>
-
           <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px' }}>
             <p style={{ marginBottom: '8px' }}>
               <a href="#" style={{ color: '#2563eb', textDecoration: 'none' }}>
                 I forgot my password
-              </a>
-            </p>
-            <p>
-              <a href="#" style={{ color: '#2563eb', textDecoration: 'none' }}>
-                Register a new membership
               </a>
             </p>
           </div>
