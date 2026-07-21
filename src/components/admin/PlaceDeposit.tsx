@@ -12,6 +12,7 @@ import type { DepositDetail } from '../../dto/deposit.dto'
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
 import { uploadInventoryPhoto } from '../../services/photoService'
 import type { RackLocation } from '../../dto/rack.dto'
+import { getTodayDate } from '../../utils/getTodayDate'
 
 export default function PlaceDeposit() {
   const { depositRequestId } = useParams()
@@ -22,6 +23,7 @@ export default function PlaceDeposit() {
   const [selectedLocationId, setSelectedLocationId] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [placementDate, setPlacementDate] = useState(getTodayDate())
 
   useEffect(() => {
     fetchData()
@@ -81,7 +83,8 @@ export default function PlaceDeposit() {
       await placeDepositRequestToRack(
         depositRequestId,
         selectedLocationId,
-        placementPhotoPath
+        placementPhotoPath,
+        placementDate
       )
 
       await Swal.fire({
@@ -223,6 +226,34 @@ export default function PlaceDeposit() {
               </p>
             </div>
           )}
+
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">
+              Tanggal Plotting
+            </h3>
+
+            <p className="text-slate-500 mb-3">
+              Pilih tanggal aktual saat barang ditempatkan di rak.
+            </p>
+
+            <input
+              type="date"
+              value={placementDate}
+              onChange={(e) => setPlacementDate(e.target.value)}
+              max={getTodayDate()}
+              className="
+                w-full
+                border
+                border-slate-300
+                rounded-xl
+                px-4
+                py-3
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-500
+              "
+            />
+          </div>
 
           <div className="mb-5">
             <h3 className="text-lg font-bold text-slate-800 mb-2">

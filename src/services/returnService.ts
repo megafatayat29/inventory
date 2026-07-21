@@ -1,4 +1,4 @@
-import type { ReturnItemPayload } from '../dto/deposit'
+import type { ReturnItemPayload } from '../dto/deposit.dto'
 import { supabase } from '../lib/supabase'
 
 export async function processItemReturn(payload: ReturnItemPayload) {

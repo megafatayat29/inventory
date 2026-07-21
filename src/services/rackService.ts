@@ -29,12 +29,14 @@ export async function getEmptyRackLocations() {
 export async function placeDepositRequestToRack(
   depositRequestId: string,
   rackLocationId: string,
-  placementPhotoPath: string
+  placementPhotoPath: string,
+  placedAt: string,
 ) {
   const { data, error } = await supabase.rpc('place_deposit_to_rack', {
     p_deposit_request_id: depositRequestId,
     p_rack_location_id: rackLocationId,
     p_placement_photo_path: placementPhotoPath,
+    p_placed_at: placedAt,
   })
 
   if (error) throw error
