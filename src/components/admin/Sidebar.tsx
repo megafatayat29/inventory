@@ -48,21 +48,6 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       icon: Boxes,
     },
     {
-      label: 'List Limbah',
-      path: '/admin/waste',
-      icon: Trash2,
-    },
-    {
-      label: 'List Barang Bekas',
-      path: '/admin/used-goods',
-      icon: Recycle,
-    },
-    {
-      label: 'List BBM dan Pelumas',
-      path: '/admin/fuel',
-      icon: Fuel,
-    },
-    {
       label: 'Dashboard Rak',
       path: '/admin/racks',
       icon: Warehouse,
@@ -81,6 +66,21 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       label: 'QR Form Penitipan',
       path: '/admin/public-form-qr',
       icon: QrCode,
+    },
+    {
+      label: 'Penyimpanan Limbah',
+      path: '/admin/waste',
+      icon: Trash2,
+    },
+    {
+      label: 'Penyimpanan Barang Bekas',
+      path: '/admin/used-goods',
+      icon: Recycle,
+    },
+    {
+      label: 'Penyimpanan BBM dan Pelumas',
+      path: '/admin/fuel',
+      icon: Fuel,
     },
     ...(role === 'super_admin'
       ? [
@@ -101,6 +101,11 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
   return (
     <aside className="w-72 shrink-0 min-h-screen h-full bg-[#173A8A] text-white flex flex-col">
       <div className="px-5 py-5 border-b border-white/10">
+        <div className="flex items-center justify-center gap-3 bg-white rounded-lg px-3 py-2 mb-3">
+          <img src={kaiLogo} alt="Logo KAI" className="h-7 w-auto object-contain" />
+          <div className="w-px h-6 bg-gray-300" />
+          <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-7 w-auto object-contain" />
+        </div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-2xl font-bold leading-tight">
@@ -161,11 +166,6 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-white/10">
-        <div className="flex items-center justify-center gap-3 bg-white rounded-lg px-3 py-2 mb-3">
-          <img src={kaiLogo} alt="Logo KAI" className="h-7 w-auto object-contain" />
-          <div className="w-px h-6 bg-gray-300" />
-          <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-7 w-auto object-contain" />
-        </div>
         <p className="text-xs text-blue-100 text-center">
           Rakfat SIGAPQ Inventory System
         </p>
