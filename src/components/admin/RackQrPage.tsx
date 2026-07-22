@@ -115,7 +115,7 @@ export default function RackQrPage() {
                 </p>
                 <p>
                   <span className="font-semibold">Ukuran Slot:</span>{' '}
-                  'Small'
+                  Small
                 </p>
               </div>
             </div>

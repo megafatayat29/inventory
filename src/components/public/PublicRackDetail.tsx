@@ -90,7 +90,7 @@ export default function PublicRackDetail() {
                 {formatRackLocation(rack)}
               </h2>
               <p className="text-slate-500">
-                Ukuran slot: 'Small'
+                Ukuran slot: Small
               </p>
             </div>
 

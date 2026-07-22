@@ -5,13 +5,26 @@ import { getAllRackLocations } from '../../services/rackService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { RackLocation } from '../../dto/rack.dto'
+import { generateRackCode } from '../../utils/generateRackCode'
 
-const rackCodes = ['A', 'B', 'C', 'D', 'E']
+type Category = 'outdoor' | 'indoor'
+
+const CATEGORY_RACK_CODES: Record<Category, string[]> = {
+  // Urutan tampil atas -> bawah. Rak A sengaja di posisi terakhir (paling bawah).
+  outdoor: ['E', 'D', 'C', 'B', 'A'],
+  // Belum ada data F-I di DB — urutan ini asumsi sementara.
+  indoor: ['F', 'G', 'H', 'I'],
+}
+
+const CATEGORY_LABELS: Record<Category, string> = {
+  outdoor: 'Outdoor',
+  indoor: 'Indoor (Gudang AC)',
+}
 
 export default function RackDashboard() {
   const navigate = useNavigate()
   const [locations, setLocations] = useState<RackLocation[]>([])
-  const [selectedRack, setSelectedRack] = useState('A')
+  const [category, setCategory] = useState<Category>('outdoor')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -31,27 +44,21 @@ export default function RackDashboard() {
     }
   }
 
-  const selectedLocations = useMemo(() => {
-    return locations.filter((location) => location.rack_code === selectedRack)
-  }, [locations, selectedRack])
+  const rackCodesInCategory = CATEGORY_RACK_CODES[category]
 
-  const selectedStats = useMemo(() => {
-    const total = selectedLocations.length
-    const occupied = selectedLocations.filter(
+  const categoryLocations = useMemo(() => {
+    return locations.filter((location) =>
+      rackCodesInCategory.includes(location.rack_code)
+    )
+  }, [locations, rackCodesInCategory])
+
+  const categoryStats = useMemo(() => {
+    const total = categoryLocations.length
+    const occupied = categoryLocations.filter(
       (location) => location.status === 'occupied'
     ).length
-    const empty = total - occupied
-
-    return { total, occupied, empty }
-  }, [selectedLocations])
-
-  const groupedBySection = useMemo(() => {
-    return {
-      FULL: selectedLocations.filter((location) => location.section === 'FULL'),
-      LEFT: selectedLocations.filter((location) => location.section === 'LEFT'),
-      RIGHT: selectedLocations.filter((location) => location.section === 'RIGHT'),
-    }
-  }, [selectedLocations])
+    return { total, occupied, empty: total - occupied }
+  }, [categoryLocations])
 
   if (loading) {
     return <p className="text-slate-500">Loading dashboard rak...</p>
@@ -78,77 +85,44 @@ export default function RackDashboard() {
 
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-5 shadow-sm overflow-hidden">
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {rackCodes.map((rack) => (
+          {(Object.keys(CATEGORY_RACK_CODES) as Category[]).map((cat) => (
             <button
-              key={rack}
-              onClick={() => setSelectedRack(rack)}
+              key={cat}
+              onClick={() => setCategory(cat)}
               className={[
                 'shrink-0 px-5 py-2 rounded-xl font-semibold transition',
-                selectedRack === rack
+                category === cat
                   ? 'bg-orange-500 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
               ].join(' ')}
             >
-              Rak {rack}
+              {CATEGORY_LABELS[cat]}
             </button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
-        <StatCard title="Total Slot" value={selectedStats.total} />
-        <StatCard title="Slot Kosong" value={selectedStats.empty} />
-        <StatCard title="Slot Terisi" value={selectedStats.occupied} />
+        <StatCard title="Total Slot" value={categoryStats.total} />
+        <StatCard title="Slot Kosong" value={categoryStats.empty} />
+        <StatCard title="Slot Terisi" value={categoryStats.occupied} />
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm overflow-hidden">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <Warehouse size={22} className="text-blue-700 shrink-0" />
-            <h3 className="text-xl font-bold text-slate-800">Rak {selectedRack}</h3>
-          </div>
+      <div className="flex flex-col gap-5">
+        {rackCodesInCategory.map((rackCode) => {
+          const rackLocations = categoryLocations.filter(
+            (location) => location.rack_code === rackCode
+          )
 
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-green-500" />
-              <span>Kosong</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-red-500" />
-              <span>Terisi</span>
-            </div>
-          </div>
-        </div>
-
-        {selectedRack === 'A' ? (
-          <div className="max-w-full overflow-x-auto pb-3">
-            <RackSection
-              title="Rak A - Small"
-              locations={groupedBySection.FULL}
+          return (
+            <RackBlock
+              key={rackCode}
+              rackCode={rackCode}
+              locations={rackLocations}
               onQrClick={(id) => navigate(`/admin/racks/${id}/qr`)}
             />
-          </div>
-        ) : (
-          <div className="max-w-full overflow-x-auto pb-3">
-            <div className="flex min-w-max items-start gap-5">
-              <RackSection
-                title="Sisi Kiri"
-                locations={groupedBySection.LEFT}
-                onQrClick={(id) => navigate(`/admin/racks/${id}/qr`)}
-              />
-
-              <div className="flex min-h-[260px] w-20 shrink-0 rounded-2xl bg-slate-100 border border-dashed border-slate-300 items-center justify-center text-slate-500 font-semibold">
-                Jalan
-              </div>
-
-              <RackSection
-                title="Sisi Kanan"
-                locations={groupedBySection.RIGHT}
-                onQrClick={(id) => navigate(`/admin/racks/${id}/qr`)}
-              />
-            </div>
-          </div>
-        )}
+          )
+        })}
       </div>
     </div>
   )
@@ -165,16 +139,100 @@ function StatCard({ title, value }: { title: string; value: number }) {
   )
 }
 
-function RackSection({
-  title,
+function RackBlock({
+  rackCode,
   locations,
   onQrClick,
 }: {
-  title: string
+  rackCode: string
   locations: RackLocation[]
   onQrClick: (id: string) => void
 }) {
-  const groupedByColumn = useMemo(() => {
+  const fullLocations = locations.filter((location) => location.section === 'FULL')
+  const leftLocations = locations.filter((location) => location.section === 'LEFT')
+  const rightLocations = locations.filter((location) => location.section === 'RIGHT')
+
+  const stats = useMemo(() => {
+    const total = locations.length
+    const occupied = locations.filter((location) => location.status === 'occupied').length
+    return { total, occupied }
+  }, [locations])
+
+  if (locations.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-5 text-center text-slate-400">
+        Rak {rackCode} — belum ada data rak.
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm overflow-hidden">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Warehouse size={20} className="text-blue-700 shrink-0" />
+          <h3 className="text-lg font-bold text-slate-800">Rak {rackCode}</h3>
+          <span className="text-xs text-slate-400">
+            ({stats.occupied}/{stats.total} terisi)
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-slate-600">
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-green-500" />
+            Kosong
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded bg-red-500" />
+            Terisi
+          </div>
+        </div>
+      </div>
+
+      {fullLocations.length > 0 ? (
+        <div className="max-w-full overflow-x-auto pb-2">
+          <ColumnGroup
+            locations={fullLocations}
+            onQrClick={onQrClick}
+          />
+        </div>
+      ) : (
+        <div className="max-w-full overflow-x-auto pb-2">
+          <div className="flex min-w-max items-start gap-4">
+            {leftLocations.length > 0 ? (
+              <ColumnGroup
+                locations={leftLocations}
+                onQrClick={onQrClick}
+              />
+            ) : (
+              <div className="w-[80px] sm:w-[92px] shrink-0 flex items-center justify-center min-h-[140px] rounded-xl border border-dashed border-slate-200 text-[10px] text-slate-300 text-center px-2">
+                Tidak ada rak
+              </div>
+            )}
+
+            <div className="flex min-h-[140px] w-14 sm:w-16 shrink-0 rounded-xl bg-slate-100 border border-dashed border-slate-300 items-center justify-center text-slate-500 font-semibold text-xs">
+              Jalan
+            </div>
+
+            <ColumnGroup
+              locations={rightLocations}
+              onQrClick={onQrClick}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ColumnGroup({
+  locations,
+  onQrClick,
+}: {
+  locations: RackLocation[]
+  onQrClick: (id: string) => void
+}) {
+  const columns = useMemo(() => {
     const map = new Map<number, RackLocation[]>()
 
     locations.forEach((location) => {
@@ -184,64 +242,86 @@ function RackSection({
       map.set(key, current)
     })
 
-    return Array.from(map.entries()).sort(([a], [b]) => a - b)
+    return Array.from(map.entries()).sort(([a], [b]) => b - a)
   }, [locations])
 
   return (
-    <div className="shrink-0">
-      <h4 className="font-bold text-slate-800 mb-3">{title}</h4>
+    <div className="flex gap-3">
+      {columns.map(([columnNo, columnLocations]) => {
+        const levels = groupByLevel(columnLocations)
+        const sizeLabel ='Small'
 
-      <div className="flex gap-4">
-        {groupedByColumn.map(([columnNo, columnLocations]) => (
+        return (
           <div
-            key={columnNo}
-            className="w-[118px] sm:w-[130px] shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-3"
+            key={columnLocations[0]?.id ?? columnNo}
+            className="w-[80px] sm:w-[92px] shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-2"
           >
-            <p className="font-semibold text-slate-700 text-center mb-3 text-sm sm:text-base">
-              {columnLocations[0]?.slot_size === 'S'
-                ? `Small ${columnNo}`
-                : `S${columnNo}`}
+            <p className="font-semibold text-slate-700 text-center mb-2 text-[11px] sm:text-xs">
+              {sizeLabel} {columnNo}
             </p>
 
-            <div className="grid grid-cols-1 gap-2">
-              {columnLocations.map((location) => {
-                const placement = getActivePlacement(location.placements)
-                const deposit = placement?.deposit_requests
+            <div className="space-y-2">
+              {levels.map(([levelNo, rows]) => (
+                <div key={levelNo}>
+                  <p className="text-[9px] font-semibold text-slate-400 text-center mb-1 uppercase tracking-wide">
+                    Tingkat {levelNo}
+                  </p>
+                  <div className="grid grid-cols-1 gap-1">
+                    {rows.map((location) => {
+                      const placement = getActivePlacement(location.placements)
+                      const deposit = placement?.deposit_requests
+                      const code = generateRackCode(location)
 
-                return (
-                  <button
-                    key={location.id}
-                    onClick={() => onQrClick(location.id)}
-                    title={
-                      deposit
-                        ? `${formatRackLocation(location)} - ${deposit.depositor_name}`
-                        : formatRackLocation(location)
-                    }
-                    className={[
-                      'relative rounded-xl px-2 py-3 text-[11px] sm:text-xs font-semibold text-white transition hover:scale-[1.02]',
-                      'min-h-[44px]',
-                      location.status === 'empty'
-                        ? 'bg-green-500 hover:bg-green-600'
-                        : 'bg-red-500 hover:bg-red-600',
-                    ].join(' ')}
-                  >
-                    <div className="pr-4 truncate">
-                      {location.slot_size === 'S'
-                        ? `R${location.row_no}`
-                        : `T${location.level_no}-R${location.row_no}`}
-                    </div>
-
-                    <QrCode
-                      size={13}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-80"
-                    />
-                  </button>
-                )
-              })}
+                      return (
+                        <button
+                          key={location.id}
+                          onClick={() => onQrClick(location.id)}
+                          title={
+                            deposit
+                              ? `${code} — ${formatRackLocation(location)} - ${deposit.depositor_name}`
+                              : `${code} — ${formatRackLocation(location)}`
+                          }
+                          className={[
+                            'relative rounded-md px-1.5 py-1.5 text-[9px] sm:text-[10px] font-semibold text-white transition hover:scale-[1.03]',
+                            'min-h-[26px]',
+                            location.status === 'empty'
+                              ? 'bg-green-500 hover:bg-green-600'
+                              : 'bg-red-500 hover:bg-red-600',
+                          ].join(' ')}
+                        >
+                          <span className="pr-3">R{location.row_no}</span>
+                          <QrCode
+                            size={9}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-80"
+                          />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
+}
+
+function groupByLevel(columnLocations: RackLocation[]) {
+  const map = new Map<number, RackLocation[]>()
+
+  columnLocations.forEach((location) => {
+    const key = location.level_no
+    const current = map.get(key) ?? []
+    current.push(location)
+    map.set(key, current)
+  })
+
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a - b)
+    .map(
+      ([level, rows]) =>
+        [level, rows.sort((a, b) => a.row_no - b.row_no)] as [number, RackLocation[]]
+    )
 }

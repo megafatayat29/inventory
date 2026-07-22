@@ -121,7 +121,7 @@ export default function PrintRackQr() {
                     {formatRackLocation(location)}
                   </td>
                   <td className="px-4 py-3">
-                    'Small'
+                    Small
                   </td>
                   <td className="px-4 py-3">
                     <span
