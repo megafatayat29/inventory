@@ -20,7 +20,7 @@ type RackLocation = {
   id: string
   rack_code: string
   section: 'FULL' | 'LEFT' | 'RIGHT'
-  slot_size: 'M' | 'L'
+  slot_size: 'S'
   display_col_no: number
   medium_col_start: number
   medium_col_span: number

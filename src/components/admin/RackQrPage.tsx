@@ -115,7 +115,7 @@ export default function RackQrPage() {
                 </p>
                 <p>
                   <span className="font-semibold">Ukuran Slot:</span>{' '}
-                  {rack.slot_size === 'L' ? 'Large' : 'Medium'}
+                  'Small'
                 </p>
               </div>
             </div>

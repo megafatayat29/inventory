@@ -1,7 +1,7 @@
 type RackLocation = {
   rack_code: string
   section: 'FULL' | 'LEFT' | 'RIGHT'
-  slot_size: 'M' | 'L'
+  slot_size: 'S'
   display_col_no: number
   level_no: number
   row_no: number
@@ -15,7 +15,7 @@ export function formatRackLocation(location: RackLocation) {
         ? 'Kiri'
         : 'Kanan'
 
-  if (location.slot_size === 'L') {
+  if (location.slot_size === 'S') {
     return `Rak ${location.rack_code}${
       sectionLabel ? ` - ${sectionLabel}` : ''
     } - Large ${location.display_col_no} - Row ${location.row_no}`

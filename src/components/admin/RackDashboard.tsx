@@ -123,7 +123,7 @@ export default function RackDashboard() {
         {selectedRack === 'A' ? (
           <div className="max-w-full overflow-x-auto pb-3">
             <RackSection
-              title="Rak A - Large"
+              title="Rak A - Small"
               locations={groupedBySection.FULL}
               onQrClick={(id) => navigate(`/admin/racks/${id}/qr`)}
             />
@@ -198,9 +198,9 @@ function RackSection({
             className="w-[118px] sm:w-[130px] shrink-0 rounded-2xl border border-slate-200 bg-slate-50 p-3"
           >
             <p className="font-semibold text-slate-700 text-center mb-3 text-sm sm:text-base">
-              {columnLocations[0]?.slot_size === 'L'
-                ? `Large ${columnNo}`
-                : `M${columnNo}`}
+              {columnLocations[0]?.slot_size === 'S'
+                ? `Small ${columnNo}`
+                : `S${columnNo}`}
             </p>
 
             <div className="grid grid-cols-1 gap-2">
@@ -226,7 +226,7 @@ function RackSection({
                     ].join(' ')}
                   >
                     <div className="pr-4 truncate">
-                      {location.slot_size === 'L'
+                      {location.slot_size === 'S'
                         ? `R${location.row_no}`
                         : `T${location.level_no}-R${location.row_no}`}
                     </div>
