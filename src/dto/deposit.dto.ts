@@ -16,6 +16,7 @@ export type DepositRequestInput = {
   unit_kerja: string;
   initial_photo_path: string;
   items: DepositItemInput[];
+  supporting_document_path?: string;
 };
 
 export type DepositItemForm = {

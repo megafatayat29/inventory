@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Save, Package, User } from 'lucide-react';
+import { Plus, Trash2, Save, Package, User, FileText } from 'lucide-react';
 import { createDepositRequest } from '../../services/depositService';
 import type { DepositUserForm, DepositItemForm } from '../../dto/deposit.dto';
 import Swal from "sweetalert2";
-import { uploadInventoryPhoto } from '../../services/photoService';
 import PhotoCapturePicker from '../common/PhotoCapturePicker';
 import kaiLogo from '../../assets/kai.png';
 import lrtLogo from '../../assets/lrt.png';
+import { uploadInventoryPhoto, uploadInventoryDocument } from '../../services/photoService';
 
 export default function ItemDepositForm() {
   // Fungsi untuk mendapatkan tanggal hari ini dalam format YYYY-MM-DD
@@ -39,6 +39,39 @@ export default function ItemDepositForm() {
   ]);
 
   const [initialPhotoFile, setInitialPhotoFile] = useState<File | null>(null)
+  const [supportingDocFile, setSupportingDocFile] = useState<File | null>(null)
+
+  const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024 // 10MB
+
+  const handleSupportingDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Format Tidak Didukung',
+        text: 'Dokumen pendukung harus berformat PDF.',
+        confirmButtonColor: '#f97316',
+      })
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_DOCUMENT_SIZE) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ukuran File Terlalu Besar',
+        text: 'Ukuran dokumen maksimal 10MB.',
+        confirmButtonColor: '#f97316',
+      })
+      e.target.value = ''
+      return
+    }
+
+    setSupportingDocFile(file)
+  }
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handler perubahan input user
@@ -109,12 +142,21 @@ export default function ItemDepositForm() {
         'deposit-initial'
       )
 
+      let supportingDocumentPath = ''
+      if (supportingDocFile) {
+        supportingDocumentPath = await uploadInventoryDocument(
+          supportingDocFile,
+          'deposit-documents'
+        )
+      }
+
       await createDepositRequest({
         depositor_name: user.nama,
         nipp: user.nipp,
         jabatan: user.jabatan,
         unit_kerja: user.unitKerja,
         initial_photo_path: initialPhotoPath,
+        supporting_document_path: supportingDocumentPath,
         items: items.map((item) => ({
           item_name: item.namaBarang,
           quantity: Number(item.jumlah),
@@ -371,33 +413,6 @@ export default function ItemDepositForm() {
             </button>
           </div>
 
-          {/* <div className="mt-8">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Foto Awal Barang
-            </h3>
-            <p className="text-slate-500 mb-4">
-              Upload atau ambil foto kondisi barang saat diserahkan.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <PhotoUploadBox
-                label="Kamera"
-                mode="camera"
-                file={initialPhotoFile}
-                onChange={setInitialPhotoFile}
-                required
-              />
-
-              <PhotoUploadBox
-                label="Upload Gambar"
-                mode="upload"
-                file={initialPhotoFile}
-                onChange={setInitialPhotoFile}
-                required
-              />
-            </div>
-          </div> */}
-
           <div className="mt-8">
             <h3 className="text-xl font-bold text-slate-800 mb-2">
               Foto Awal Barang
@@ -416,6 +431,37 @@ export default function ItemDepositForm() {
                 * Foto awal barang wajib diupload sebelum submit.
               </p>
             )}
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
+              Dokumen Pendukung
+            </h3>
+            <p className="text-slate-500 mb-4">
+              Upload dokumen pendukung dalam format PDF (opsional, maksimal 10MB).
+            </p>
+
+            <label
+              htmlFor="supporting-document"
+              className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-blue-300 rounded-lg p-8 cursor-pointer hover:bg-blue-50 transition-colors"
+            >
+              <FileText className="w-10 h-10 text-blue-800" />
+              <span className="font-semibold text-slate-800">
+                {supportingDocFile ? supportingDocFile.name : 'Pilih File PDF'}
+              </span>
+              <span className="text-sm text-slate-500">
+                {supportingDocFile
+                  ? `${(supportingDocFile.size / (1024 * 1024)).toFixed(2)} MB`
+                  : 'Klik untuk pilih dokumen dari perangkat'}
+              </span>
+              <input
+                id="supporting-document"
+                type="file"
+                accept="application/pdf"
+                onChange={handleSupportingDocChange}
+                className="hidden"
+              />
+            </label>
           </div>
 
           {/* Footer / Submit */}

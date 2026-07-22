@@ -20,6 +20,7 @@ export async function createDepositRequest(payload: DepositRequestInput) {
     p_jabatan: payload.jabatan,
     p_unit_kerja: payload.unit_kerja,
     p_initial_photo_path: payload.initial_photo_path,
+    p_supporting_document_path: payload.supporting_document_path || '',
     p_items: itemsPayload,
   })
 
