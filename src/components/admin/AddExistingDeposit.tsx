@@ -6,7 +6,6 @@ import { getEmptyRackLocations } from '../../services/rackService'
 import { uploadInventoryPhoto } from '../../services/photoService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import PhotoCapturePicker from '../common/PhotoCapturePicker'
-import { supabase } from '../../lib/supabase'
 
 type ExistingItem = {
   id: number
