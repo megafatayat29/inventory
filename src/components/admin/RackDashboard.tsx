@@ -13,7 +13,7 @@ const CATEGORY_RACK_CODES: Record<Category, string[]> = {
   // Urutan tampil atas -> bawah. Rak A sengaja di posisi terakhir (paling bawah).
   outdoor: ['E', 'D', 'C', 'B', 'A'],
   // Belum ada data F-I di DB — urutan ini asumsi sementara.
-  indoor: ['F', 'G', 'H', 'I'],
+  indoor: ['F', 'G'],
 }
 
 const CATEGORY_LABELS: Record<Category, string> = {

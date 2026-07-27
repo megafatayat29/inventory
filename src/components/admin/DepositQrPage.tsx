@@ -70,7 +70,7 @@ export default function DepositQrPage() {
   const qrUrl = `${window.location.origin}/deposit/${deposit.id}`
   const placement = getActivePlacement(deposit.placements)
   const rackLocation = placement?.rack_locations
-  console.log('deposit', deposit);
+
   const gallery = [
     ...(deposit.initial_photo_path
       ? [{

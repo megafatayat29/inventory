@@ -6,6 +6,8 @@ export async function updateInventoryItem(payload: {
   category?: string | null
   procurement_unit: string
   entry_date: string
+  placed_date: string
+  deposit_request_id: string
 }) {
   const { error } = await supabase.rpc('update_inventory_item', {
     p_item_id: payload.item_id,
@@ -13,6 +15,8 @@ export async function updateInventoryItem(payload: {
     p_category: payload.category || '',
     p_procurement_unit: payload.procurement_unit,
     p_entry_date: payload.entry_date,
+    p_placed_at: payload.placed_date,
+    p_deposit_request_id: payload.deposit_request_id
   })
 
   if (error) throw error

@@ -62,33 +62,6 @@ export default function AddExistingDeposit() {
     fetchLocations()
   }, [])
 
-  useEffect(() => {
-    async function debugCurrentUser() {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser()
-
-      if (error) {
-        console.error('GET USER ERROR:', error)
-        return
-      }
-
-      console.log('CURRENT AUTH USER:', {
-        id: user?.id,
-        email: user?.email,
-      })
-
-      const { data: profile, error: profileError } = await supabase.rpc(
-        'debug_my_profile'
-      )
-
-      console.log('DEBUG PROFILE:', profile, profileError)
-    }
-
-    debugCurrentUser()
-  }, [])
-
   async function fetchLocations() {
     try {
       const data = await getEmptyRackLocations()

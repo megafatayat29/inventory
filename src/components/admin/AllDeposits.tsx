@@ -31,6 +31,7 @@ type TableRow = {
   rackCode: string
   rowNo: string
   entryDate: string
+  placedDate: string
   daysStored: number
   status: string
   batchItemCount: number
@@ -98,6 +99,8 @@ export default function AllDeposits() {
     category: string | null
     procurementUnit: string
     entryDate: string
+    placedDate: string
+    depositRequestId: string
   }) {
     const result = await Swal.fire({
       title: 'Edit Barang',
@@ -128,6 +131,11 @@ export default function AllDeposits() {
             <label style="font-weight:600;">Tanggal Masuk</label>
             <input id="entry_date" type="date" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.entryDate}" />
           </div>
+          
+          <div>
+            <label style="font-weight:600;">Tanggal Plot</label>
+            <input id="placed_date" type="date" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.placedDate ? row.placedDate.slice(0, 10) : ''}" />
+          </div>
         </div>
       `,
       showCancelButton: true,
@@ -150,10 +158,14 @@ export default function AllDeposits() {
         const entryDate = (
           document.getElementById('entry_date') as HTMLInputElement
         ).value
+        
+        const placedDate = (
+          document.getElementById('placed_date') as HTMLInputElement
+        ).value
 
         if (!itemName || !procurementUnit || !entryDate) {
           Swal.showValidationMessage(
-            'Nama barang, unit pengadaan, dan tanggal masuk wajib diisi.'
+            'Nama barang, unit pengadaan, tanggal masuk, dan tanggal plot wajib diisi.'
           )
           return
         }
@@ -163,6 +175,7 @@ export default function AllDeposits() {
           category,
           procurementUnit,
           entryDate,
+          placedDate,
         }
       },
     })
@@ -176,6 +189,8 @@ export default function AllDeposits() {
         category: result.value.category || null,
         procurement_unit: result.value.procurementUnit,
         entry_date: result.value.entryDate,
+        placed_date: `${result.value.placedDate}T00:00:00Z`,
+        deposit_request_id: row.depositRequestId,
       })
 
       await Swal.fire({
@@ -321,6 +336,7 @@ export default function AllDeposits() {
     return deposits.flatMap((deposit) => {
       const placement = getActivePlacement(deposit.placements)
       const rackLocation = placement?.rack_locations
+      const placedDate = placement?.placed_at ?? ''
       const batchItemCount = deposit.items?.length ?? 0
 
       return deposit.items.map((item) => {
@@ -341,6 +357,7 @@ export default function AllDeposits() {
           procurementUnit: item.procurement_unit,
           position,
           entryDate,
+          placedDate,
           status: deposit.status,
           batchItemCount,
 
@@ -421,12 +438,14 @@ export default function AllDeposits() {
       row.procurementUnit,
       row.position,
       new Date(row.entryDate).toLocaleDateString('id-ID'),
+      new Date(row.placedDate).toLocaleDateString('id-ID'),
       `${row.daysStored} hari`,
       getDepositStatusLabel(row.status),
       row.depositorName,
       row.nipp,
       row.jabatan,
       row.unitKerja,
+      row.depositId
     ])
 
     const csvContent = [
@@ -450,6 +469,7 @@ export default function AllDeposits() {
       'Unit Pengadaan': row.procurementUnit,
       Posisi: row.position,
       'Tanggal Masuk': new Date(row.entryDate).toLocaleDateString('id-ID'),
+      'Tanggal Plot': new Date(row.placedDate).toLocaleDateString('id-ID'),
       'Lama Simpan': `${row.daysStored} hari`,
       Status: getDepositStatusLabel(row.status),
       'Nama Penitip': row.depositorName,
@@ -616,6 +636,9 @@ export default function AllDeposits() {
                   Tanggal Masuk
                 </th>
                 <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
+                  Tanggal Plot
+                </th>
+                <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
                   Lama Simpan
                 </th>
                 <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
@@ -684,6 +707,10 @@ export default function AllDeposits() {
                     <td className="px-5 py-4 text-slate-700">
                       {new Date(row.entryDate).toLocaleDateString('id-ID')}
                     </td>
+                    
+                    <td className="px-5 py-4 text-slate-700">
+                      {row.placedDate ? new Date(row.placedDate).toLocaleDateString('id-ID') : '-'}
+                    </td>
 
                     <td className="px-5 py-4 text-slate-700">
                       {row.daysStored} hari
@@ -720,6 +747,8 @@ export default function AllDeposits() {
                                 category: row.category,
                                 procurementUnit: row.procurementUnit,
                                 entryDate: row.entryDate,
+                                placedDate: row.placedDate,
+                                depositRequestId: row.depositId,
                               })
                             }
                             className="text-orange-600 font-semibold hover:underline"
