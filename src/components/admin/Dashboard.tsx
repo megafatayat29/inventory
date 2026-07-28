@@ -11,6 +11,7 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from '../../services/dashboardService'
+import InventoryChart from '../common/InventoryChart'
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -104,6 +105,9 @@ export default function Dashboard() {
 
   return (
     <div>
+      <section className="mt-8">
+        <InventoryChart />
+      </section>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Overview Gudang</h2>
         <p className="text-slate-500">
