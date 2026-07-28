@@ -97,6 +97,9 @@ export default function PublicDepositDetail() {
   const rackLocation = placement?.rack_locations
   const entryDate = getDepositEntryDate(deposit)
   const daysInWarehouse = getDaysSince(entryDate)
+  const isAllItemsReturned =
+    deposit.items.length > 0 &&
+    deposit.items.every((item) => item.remaining_quantity === 0)
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -176,10 +179,12 @@ export default function PublicDepositDetail() {
 
               <div className="space-y-2 text-sm text-slate-700">
                 <p>
-                  <span className="font-semibold">Lokasi:</span>{' '}
+                  <span className="font-semibold">Lokasi:</span>{" "}
                   {rackLocation
                     ? formatRackLocation(rackLocation)
-                    : 'Belum diplot'}
+                    : isAllItemsReturned
+                      ? "Barang telah habis"
+                      : "Belum diplot"}
                 </p>
               </div>
             </div>

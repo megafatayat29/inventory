@@ -440,7 +440,7 @@ export default function AllDeposits() {
       new Date(row.entryDate).toLocaleDateString('id-ID'),
       new Date(row.placedDate).toLocaleDateString('id-ID'),
       `${row.daysStored} hari`,
-      getDepositStatusLabel(row.status),
+      getDepositStatusLabel(row.status, row.remainingQuantity),
       row.depositorName,
       row.nipp,
       row.jabatan,
@@ -471,7 +471,7 @@ export default function AllDeposits() {
       'Tanggal Masuk': new Date(row.entryDate).toLocaleDateString('id-ID'),
       'Tanggal Plot': new Date(row.placedDate).toLocaleDateString('id-ID'),
       'Lama Simpan': `${row.daysStored} hari`,
-      Status: getDepositStatusLabel(row.status),
+      Status: getDepositStatusLabel(row.status, row.remainingQuantity),
       'Nama Penitip': row.depositorName,
       NIPP: row.nipp,
       Jabatan: row.jabatan,
@@ -719,10 +719,11 @@ export default function AllDeposits() {
                     <td className="px-5 py-4">
                       <span
                         className={`px-3 py-1 text-xs font-semibold rounded-full ${getDepositStatusClass(
-                          row.status
+                          row.status,
+                          row.remainingQuantity,
                         )}`}
                       >
-                        {getDepositStatusLabel(row.status)}
+                        {getDepositStatusLabel(row.status, row.remainingQuantity)}
                       </span>
                     </td>
 

@@ -1,4 +1,11 @@
-export function getDepositStatusLabel(status: string) {
+export function getDepositStatusLabel(
+  status: string,
+  remainingQuantity?: number,
+) {
+  if (remainingQuantity === 0) {
+    return 'Habis Terpakai'
+  }
+
   switch (status) {
     case 'pending':
       return 'Pending'
@@ -13,7 +20,16 @@ export function getDepositStatusLabel(status: string) {
   }
 }
 
-export function getDepositStatusClass(status: string) {
+export function getDepositStatusClass(
+  status: string,
+  remainingQuantity?: number,
+) {
+  if (remainingQuantity === 0) {
+    return 'bg-gray-200 text-gray-700'
+    // atau:
+    // return 'bg-red-100 text-red-700'
+  }
+
   switch (status) {
     case 'pending':
       return 'bg-orange-100 text-orange-700'
