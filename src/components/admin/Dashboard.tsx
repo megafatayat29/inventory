@@ -105,9 +105,6 @@ export default function Dashboard() {
 
   return (
     <div>
-      <section className="mt-8">
-        <InventoryChart />
-      </section>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Overview Gudang</h2>
         <p className="text-slate-500">
@@ -115,6 +112,10 @@ export default function Dashboard() {
         </p>
       </div>
 
+      <section className="mt-8">
+        <InventoryChart />
+      </section>
+      
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800">
