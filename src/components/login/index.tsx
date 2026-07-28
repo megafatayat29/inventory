@@ -122,7 +122,7 @@ function LoginPage() {
             borderBottom: '1px solid #eef2f7',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: '28px', color: '#111827' }}>RakFat SIGAPQ</h2>
+          <h2 style={{ margin: 15, fontSize: '28px', color: '#111827' }}>RakFat SIGAPQ</h2>
           <p style={{ marginTop: '8px', color: '#64748b' }}>Sign in to start your session</p>
         </div>
 

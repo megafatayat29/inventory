@@ -101,26 +101,45 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
   return (
     <aside className="w-72 shrink-0 min-h-screen h-full bg-[#173A8A] text-white flex flex-col">
       <div className="px-5 py-5 border-b border-white/10">
-        <div className="flex items-center justify-center gap-3 bg-white rounded-lg px-3 py-2 mb-3">
-          <img src={kaiLogo} alt="Logo KAI" className="h-7 w-auto object-contain" />
-          <div className="w-px h-6 bg-gray-300" />
-          <img src={lrtLogo} alt="Logo LRT Jabodebek" className="h-7 w-auto object-contain" />
+        {/* Logo */}
+        <div className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+          <div className="grid grid-cols-2 items-center">
+            <div className="flex justify-center items-center border-r border-gray-300">
+              <img
+                src={kaiLogo}
+                alt="Logo KAI"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+
+            <div className="flex justify-center items-center">
+              <img
+                src={lrtLogo}
+                alt="Logo LRT Jabodebek"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Title */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-2xl font-bold leading-tight">
               RakFat SIGAPQ
             </h2>
 
-            <p className="text-sm text-blue-100 mt-2">Role login:</p>
+            <p className="text-sm text-blue-100 mt-2">
+              Role login:
+            </p>
 
             <span
               className={[
-                'inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold',
-                role === 'super_admin'
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-blue-100 text-blue-900',
-              ].join(' ')}
+                "inline-flex mt-2 px-3 py-1 rounded-full text-xs font-semibold",
+                role === "super_admin"
+                  ? "bg-orange-500 text-white"
+                  : "bg-blue-100 text-blue-900",
+              ].join(" ")}
             >
               {getRoleLabel(role)}
             </span>
@@ -150,12 +169,12 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
               onClick={onClose}
               className={({ isActive }) =>
                 [
-                  'flex items-center gap-3 px-4 py-3 rounded-xl transition',
-                  'text-sm font-semibold',
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition",
+                  "text-sm font-semibold",
                   isActive
-                    ? 'bg-orange-500 text-white shadow'
-                    : 'text-blue-100 hover:bg-white/10 hover:text-white',
-                ].join(' ')
+                    ? "bg-orange-500 text-white shadow"
+                    : "text-blue-100 hover:bg-white/10 hover:text-white",
+                ].join(" ")
               }
             >
               <Icon size={20} className="shrink-0" />
@@ -167,7 +186,7 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
 
       <div className="p-4 border-t border-white/10">
         <p className="text-xs text-blue-100 text-center">
-          Rakfat SIGAPQ Inventory System
+          RakFat SIGAPQ Inventory System
         </p>
       </div>
     </aside>
