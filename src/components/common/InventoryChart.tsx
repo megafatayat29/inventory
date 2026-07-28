@@ -11,8 +11,14 @@ import {
 } from 'recharts'
 import { getInventoryChart } from '../../services/inventoryChart';
 
+interface InventoryChartData {
+  month: string
+  incoming: number
+  outgoing: number
+}
+
 export default function InventoryChart() {
-  const [chartData, setChartData] = useState([]);
+  const [chartData, setChartData] = useState<InventoryChartData[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -23,6 +29,10 @@ export default function InventoryChart() {
     load();
   }, []);
 
+  const filteredChartData = chartData.filter(
+    item => item.incoming > 0 || item.outgoing > 0
+  );
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
       <h3 className="text-lg font-semibold text-slate-800 mb-4">
@@ -30,7 +40,7 @@ export default function InventoryChart() {
       </h3>
 
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={chartData}>
+        <LineChart data={filteredChartData}>
           <CartesianGrid strokeDasharray="3 3" />
 
           <XAxis dataKey="month" />
