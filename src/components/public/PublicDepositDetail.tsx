@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Package, MapPin, User, CalendarDays, Archive } from 'lucide-react'
+import { Package, MapPin, User, CalendarDays, Archive, Eye } from 'lucide-react'
 import { getDepositRequestDetail } from '../../services/depositService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import {
@@ -13,6 +13,8 @@ import { getOutbound } from '../../utils/getOutbound'
 import { getLastReturnDate } from '../../utils/getLastReturnDate'
 import kaiLogo from '../../assets/kai.png'
 import lrtLogo from '../../assets/lrt.png'
+import type { ReturnRecord } from '../../dto/item.dto'
+import { getPublicImage } from '../../utils/getPublicImage'
 
 function getDateOnly(dateString: string) {
   const date = new Date(dateString)
@@ -48,6 +50,7 @@ export default function PublicDepositDetail() {
   const { depositRequestId } = useParams()
   const [deposit, setDeposit] = useState<DepositDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedReturn, setSelectedReturn] = useState<ReturnRecord | null>(null)
 
   useEffect(() => {
     fetchDetail()
@@ -290,6 +293,9 @@ export default function PublicDepositDetail() {
                     <th className="text-left p-3 border border-slate-200">
                       Qty
                     </th>
+                    <th className="text-left p-3 border border-slate-200">
+                      Dokumentasi
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -300,6 +306,7 @@ export default function PublicDepositDetail() {
                         returnDate: record.return_date,
                         itemName: detail.items?.item_name ?? "-",
                         qty: detail.returned_quantity,
+                        record,
                       }))
                     )
                     .map((row, index) => (
@@ -319,6 +326,14 @@ export default function PublicDepositDetail() {
                         <td className="p-3 border border-slate-200">
                           {row.qty}
                         </td>
+                        <td className="p-3 border border-slate-200">
+                          <button
+                            onClick={() => setSelectedReturn(row.record)}
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            <Eye size={18} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                 </tbody>
@@ -327,6 +342,62 @@ export default function PublicDepositDetail() {
           </div>
         </div>
       </main>
+      {selectedReturn && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-full max-w-4xl p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">
+                Dokumentasi Pengambilan
+              </h2>
+
+              <button
+                onClick={() => setSelectedReturn(null)}
+                className="text-slate-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p>
+                <strong>Tanggal:</strong>{" "}
+                {new Date(selectedReturn.return_date).toLocaleDateString("id-ID")}
+              </p>
+
+              <p>
+                <strong>Catatan:</strong>{" "}
+                {selectedReturn.notes || "-"}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+
+              <div>
+                <h3 className="font-medium mb-2">
+                  Kondisi Sisa Barang
+                </h3>
+
+                <img
+                  src={selectedReturn.remaining_photo_path ? getPublicImage(selectedReturn.remaining_photo_path) : 'No Photo Uploaded'}
+                  className="rounded-lg border w-full"
+                />
+              </div>
+
+              <div>
+                <h3 className="font-medium mb-2">
+                  Barang yang Diambil
+                </h3>
+
+                <img
+                  src={selectedReturn.taken_photo_path ? getPublicImage(selectedReturn.taken_photo_path) : 'No Photo Uploaded'}
+                  className="rounded-lg border w-full"
+                />
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
