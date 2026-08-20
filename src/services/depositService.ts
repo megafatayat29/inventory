@@ -143,6 +143,7 @@ export async function getAllDepositRequests() {
       jabatan,
       unit_kerja,
       initial_photo_path,
+      supporting_document_path,
       status,
       created_at,
       items (

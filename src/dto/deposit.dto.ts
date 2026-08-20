@@ -42,6 +42,7 @@ export type DepositRequest = {
   jabatan: string
   unit_kerja: string
   initial_photo_path: string
+  supporting_document_path: string | null
   status: string
   created_at: string
   items: DepositItem[]

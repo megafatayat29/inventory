@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Download, FileSpreadsheet, Search } from 'lucide-react'
+import { href, useNavigate } from 'react-router-dom'
+import { Download, FileSpreadsheet, Search, FileText } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { getInventoryDocumentUrl } from '../../services/photoService'
 import { deleteDepositBatch, getAllDepositRequests } from '../../services/depositService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import { getActivePlacement } from '../../utils/getActivePlacement'
@@ -35,6 +36,7 @@ type TableRow = {
   daysStored: number
   status: string
   batchItemCount: number
+  documentUrl: string | null
 }
 
 function getDaysSince(dateString: string) {
@@ -360,6 +362,7 @@ export default function AllDeposits() {
           placedDate,
           status: deposit.status,
           batchItemCount,
+          documentUrl: getInventoryDocumentUrl(deposit.supporting_document_path),
 
           rackCode: rackLocation?.rack_code ?? '-',
           rowNo: rackLocation
@@ -644,6 +647,9 @@ export default function AllDeposits() {
                 <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
                   Status
                 </th>
+                <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
+                  Dokumen
+                </th>
                 <th className="text-right px-5 py-4 font-bold uppercase tracking-wide">
                   Aksi
                 </th>
@@ -725,6 +731,22 @@ export default function AllDeposits() {
                       >
                         {getDepositStatusLabel(row.status, row.remainingQuantity)}
                       </span>
+                    </td>
+                    
+                    <td className="px-5 py-4">
+                      {row.documentUrl ? (
+                      <a href={row.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline"
+                      >
+                      <FileText size={16} />
+                      Lihat PDF
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">-</span>
+                  )}
+
                     </td>
 
                     <td className="px-5 py-4">
