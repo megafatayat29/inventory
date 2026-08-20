@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { href, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Download, FileSpreadsheet, Search, FileText } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { getInventoryDocumentUrl } from '../../services/photoService'
