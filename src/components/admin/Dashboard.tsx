@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import {
   Archive,
   Boxes,
+  Fuel,
   Inbox,
   PackageCheck,
+  Recycle,
   RotateCcw,
+  Trash2,
   Warehouse,
 } from 'lucide-react'
 import {
@@ -23,6 +26,9 @@ export default function Dashboard() {
     activeItemTypes: 0,
     storedQuantity: 0,
     returnedQuantity: 0,
+    storedWasteRequests: 0,
+    storedFuelRequests: 0,
+    storedUsedGoodsRequests: 0,
   })
 
   const [loading, setLoading] = useState(true)
@@ -103,6 +109,27 @@ export default function Dashboard() {
     },
   ]
 
+  const specialDepositCards = [
+    {
+      title: 'Limbah Tersimpan',
+      value: stats.storedWasteRequests,
+      icon: Trash2,
+      description: 'Batch limbah yang masih tersimpan di gudang',
+    },
+    {
+      title: 'BBM & Pelumas Tersimpan',
+      value: stats.storedFuelRequests,
+      icon: Fuel,
+      description: 'Batch BBM & pelumas yang masih tersimpan di gudang',
+    },
+    {
+      title: 'Barang Bekas Tersimpan',
+      value: stats.storedUsedGoodsRequests,
+      icon: Recycle,
+      description: 'Batch barang bekas yang masih tersimpan di gudang',
+    },
+  ]
+
   return (
     <div>
       <div className="mb-6">
@@ -115,7 +142,7 @@ export default function Dashboard() {
       <section className="mt-8">
         <InventoryChart />
       </section>
-      
+
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800">
@@ -144,7 +171,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section>
+      <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800">
             Stok Aktual Barang
@@ -153,6 +180,20 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {itemCards.map((card) => (
+            <StatCard key={card.title} {...card} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-slate-800">
+            Limbah, BBM & Barang Bekas
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {specialDepositCards.map((card) => (
             <StatCard key={card.title} {...card} />
           ))}
         </div>

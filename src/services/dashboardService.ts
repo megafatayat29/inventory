@@ -9,6 +9,9 @@ export type DashboardStats = {
   activeItemTypes: number
   storedQuantity: number
   returnedQuantity: number
+  storedWasteRequests: number
+  storedFuelRequests: number
+  storedUsedGoodsRequests: number
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -20,6 +23,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     occupiedRacksResult,
     activeItemsResult,
     allItemsResult,
+    storedWasteRequestsResult,
+    storedFuelRequestsResult,
+    storedUsedGoodsRequestsResult,
   ] = await Promise.all([
     supabase
       .from('deposit_requests')
@@ -54,6 +60,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     supabase
       .from('items')
       .select('quantity, remaining_quantity'),
+
+    supabase
+      .from('deposit_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'stored')
+      .eq('deposit_type', 'limbah'),
+
+    supabase
+      .from('deposit_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'stored')
+      .eq('deposit_type', 'bbm_pelumas'),
+
+    supabase
+      .from('deposit_requests')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'stored')
+      .eq('deposit_type', 'barang_bekas'),
   ])
 
   const errors = [
@@ -64,6 +88,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     occupiedRacksResult.error,
     activeItemsResult.error,
     allItemsResult.error,
+    storedWasteRequestsResult.error,
+    storedFuelRequestsResult.error,
+    storedUsedGoodsRequestsResult.error,
   ].filter(Boolean)
 
   if (errors.length > 0) {
@@ -92,5 +119,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     activeItemTypes: activeItemsResult.count ?? 0,
     storedQuantity,
     returnedQuantity,
+    storedWasteRequests: storedWasteRequestsResult.count ?? 0,
+    storedFuelRequests: storedFuelRequestsResult.count ?? 0,
+    storedUsedGoodsRequests: storedUsedGoodsRequestsResult.count ?? 0,
   }
 }
