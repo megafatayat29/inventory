@@ -1,9 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
-import { ArrowLeft, Download, FileText, Printer, QrCode } from 'lucide-react'
-import { getDepositRequestDetail } from '../../services/depositService'
-import { getInventoryDocumentUrl } from '../../services/photoService'
+import {
+  ArrowLeft,
+  Download,
+  FileText,
+  Printer,
+  QrCode,
+  Trash2,
+  Upload,
+} from 'lucide-react'
+import Swal from 'sweetalert2'
+import {
+  getDepositRequestDetail,
+  updateDepositSupportingDocument,
+} from '../../services/depositService'
+import {
+  deleteInventoryDocument,
+  getInventoryDocumentUrl,
+  uploadInventoryDocument,
+} from '../../services/photoService'
+import { getMyProfile } from '../../services/authService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import {
   getDepositStatusClass,
@@ -11,6 +28,7 @@ import {
 } from '../../utils/statusBadge'
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { DepositDetail } from '../../dto/deposit.dto'
+import type { Profile } from '../../dto/user.dto'
 import PhotoGallery from '../common/PhotoGallery'
 import { getPublicImage } from '../../utils/getPublicImage'
 
@@ -36,10 +54,24 @@ export default function DepositQrPage() {
 
   const [deposit, setDeposit] = useState<DepositDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [uploadingDocument, setUploadingDocument] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchDetail()
   }, [depositRequestId])
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const data = await getMyProfile()
+      setProfile(data)
+    }
+
+    fetchProfile()
+  }, [])
+
+  const isSuperAdmin = profile?.role === 'super_admin'
 
   async function fetchDetail() {
     if (!depositRequestId) return
@@ -58,6 +90,134 @@ export default function DepositQrPage() {
 
   function handlePrint() {
     window.print()
+  }
+
+  function triggerDocumentFileSelect() {
+    fileInputRef.current?.click()
+  }
+
+  async function handleDocumentFileChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file || !deposit) return
+
+    if (file.type !== 'application/pdf') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Format tidak didukung',
+        text: 'Dokumen pendukung harus berupa file PDF.',
+        confirmButtonColor: '#ef4444',
+      })
+      return
+    }
+
+    const previousPath = deposit.supporting_document_path
+
+    try {
+      setUploadingDocument(true)
+
+      const newPath = await uploadInventoryDocument(
+        file,
+        `deposit-requests/${deposit.id}`
+      )
+
+      await updateDepositSupportingDocument(deposit.id, newPath)
+
+      if (previousPath) {
+        try {
+          await deleteInventoryDocument(previousPath)
+        } catch (cleanupError) {
+          console.error('Gagal menghapus dokumen lama:', cleanupError)
+        }
+      }
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: previousPath
+          ? 'Dokumen pendukung berhasil diganti.'
+          : 'Dokumen pendukung berhasil diupload.',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      fetchDetail()
+    } catch (error) {
+      console.error(error)
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Dokumen pendukung gagal diupload.',
+        confirmButtonColor: '#ef4444',
+      })
+    } finally {
+      setUploadingDocument(false)
+    }
+  }
+
+  async function handleDeleteDocument() {
+    if (!deposit?.supporting_document_path) return
+
+    const confirmation = await Swal.fire({
+      icon: 'warning',
+      title: 'Hapus dokumen pendukung?',
+      text: 'Dokumen ini akan dihapus dari batch dan tidak bisa dikembalikan.',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    const pathToDelete = deposit.supporting_document_path
+
+    try {
+      setUploadingDocument(true)
+
+      await updateDepositSupportingDocument(deposit.id, null)
+
+      try {
+        await deleteInventoryDocument(pathToDelete)
+      } catch (cleanupError) {
+        console.error(
+          'Gagal menghapus file dokumen dari storage:',
+          cleanupError
+        )
+      }
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Dokumen pendukung berhasil dihapus.',
+        timer: 1400,
+        showConfirmButton: false,
+      })
+
+      fetchDetail()
+    } catch (error) {
+      console.error(error)
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'Dokumen pendukung gagal dihapus.',
+        confirmButtonColor: '#ef4444',
+      })
+    } finally {
+      setUploadingDocument(false)
+    }
   }
 
   if (loading) {
@@ -204,33 +364,79 @@ export default function DepositQrPage() {
                     ? formatRackLocation(rackLocation)
                     : 'Belum diplot'}
                 </p>
-                <p className="print:hidden">
-                  <span className="font-semibold">Dokumen Pendukung:</span>{' '}
-                  {documentUrl ? (
-                    <span className="inline-flex items-center gap-3">
-                      <a
-                        href={documentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline"
-                      >
-                        <FileText size={16} />
-                        View
-                      </a>
-                      <a
-                        href={documentUrl}
-                        download
-                        className="inline-flex items-center gap-1 text-slate-700 font-semibold hover:underline"
-                      >
-                        <Download size={16} />
-                        Download
-                      </a>
-                    </span>
-                  ) : (
-                    '-'
-                  )}
-                </p>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-6 border-t border-slate-200 pt-5 print:hidden">
+            <h3 className="font-bold text-slate-900 mb-3">
+              Dokumen Pendukung
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {documentUrl ? (
+                <>
+                  <a
+                    href={documentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline"
+                  >
+                    <FileText size={16} />
+                    View
+                  </a>
+                  <a
+                    href={documentUrl}
+                    download
+                    className="inline-flex items-center gap-1 text-slate-700 font-semibold hover:underline"
+                  >
+                    <Download size={16} />
+                    Download
+                  </a>
+                </>
+              ) : (
+                <span className="text-sm text-slate-400">
+                  Belum ada dokumen pendukung.
+                </span>
+              )}
+
+              {isSuperAdmin && (
+                <>
+                  <button
+                    type="button"
+                    onClick={triggerDocumentFileSelect}
+                    disabled={uploadingDocument}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Upload size={16} />
+                    {uploadingDocument
+                      ? 'Memproses...'
+                      : documentUrl
+                      ? 'Ganti Dokumen'
+                      : 'Upload Dokumen'}
+                  </button>
+
+                  {documentUrl && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteDocument}
+                      disabled={uploadingDocument}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-300 text-red-600 text-sm font-semibold hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Trash2 size={16} />
+                      Hapus
+                    </button>
+                  )}
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={handleDocumentFileChange}
+                  />
+                </>
+              )}
             </div>
           </div>
 

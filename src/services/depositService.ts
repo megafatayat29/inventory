@@ -275,3 +275,15 @@ export async function deleteDepositBatch(depositRequestId: string) {
 
   if (error) throw error
 }
+
+export async function updateDepositSupportingDocument(
+  depositRequestId: string,
+  supportingDocumentPath: string | null
+) {
+  const { error } = await supabase
+    .from('deposit_requests')
+    .update({ supporting_document_path: supportingDocumentPath })
+    .eq('id', depositRequestId)
+
+  if (error) throw error
+}

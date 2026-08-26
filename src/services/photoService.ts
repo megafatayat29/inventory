@@ -57,3 +57,11 @@ export function getInventoryDocumentUrl(path?: string | null) {
 
   return data.publicUrl
 }
+
+export async function deleteInventoryDocument(path: string) {
+  const { error } = await supabase.storage
+    .from(DOCUMENT_BUCKET_NAME)
+    .remove([path])
+
+  if (error) throw error
+}
