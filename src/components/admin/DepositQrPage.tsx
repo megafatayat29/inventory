@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { QRCodeCanvas } from 'qrcode.react'
-import { ArrowLeft, Printer, QrCode } from 'lucide-react'
+import { ArrowLeft, Download, FileText, Printer, QrCode } from 'lucide-react'
 import { getDepositRequestDetail } from '../../services/depositService'
+import { getInventoryDocumentUrl } from '../../services/photoService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import {
   getDepositStatusClass,
@@ -70,6 +71,7 @@ export default function DepositQrPage() {
   const qrUrl = `${window.location.origin}/deposit/${deposit.id}`
   const placement = getActivePlacement(deposit.placements)
   const rackLocation = placement?.rack_locations
+  const documentUrl = getInventoryDocumentUrl(deposit.supporting_document_path)
 
   const gallery = [
     ...(deposit.initial_photo_path
@@ -201,6 +203,32 @@ export default function DepositQrPage() {
                   {rackLocation
                     ? formatRackLocation(rackLocation)
                     : 'Belum diplot'}
+                </p>
+                <p className="print:hidden">
+                  <span className="font-semibold">Dokumen Pendukung:</span>{' '}
+                  {documentUrl ? (
+                    <span className="inline-flex items-center gap-3">
+                      <a
+                        href={documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline"
+                      >
+                        <FileText size={16} />
+                        View
+                      </a>
+                      <a
+                        href={documentUrl}
+                        download
+                        className="inline-flex items-center gap-1 text-slate-700 font-semibold hover:underline"
+                      >
+                        <Download size={16} />
+                        Download
+                      </a>
+                    </span>
+                  ) : (
+                    '-'
+                  )}
                 </p>
               </div>
             </div>

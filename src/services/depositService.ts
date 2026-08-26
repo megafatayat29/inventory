@@ -74,6 +74,7 @@ export async function getDepositRequestDetail(depositRequestId: string) {
       status,
       created_at,
       initial_photo_path,
+      supporting_document_path,
       items (
         id,
         item_name,
