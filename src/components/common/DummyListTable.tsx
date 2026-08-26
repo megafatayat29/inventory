@@ -1,4 +1,5 @@
 import { Plus, LayoutList } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 type Column = {
   key: string
@@ -9,16 +10,28 @@ type DummyListTableProps = {
   title: string
   addLabel: string
   columns: Column[]
+  rows?: Record<string, ReactNode>[]
+  loading?: boolean
 }
 
-export default function DummyListTable({ title, addLabel, columns }: DummyListTableProps) {
+export default function DummyListTable({
+  title,
+  addLabel,
+  columns,
+  rows,
+  loading = false,
+}: DummyListTableProps) {
+  const isConnected = rows !== undefined
+
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
-        <p className="text-slate-500 mt-1">
-          Halaman ini masih dummy — belum terhubung ke data asli.
-        </p>
+        {!isConnected && (
+          <p className="text-slate-500 mt-1">
+            Halaman ini masih dummy — belum terhubung ke data asli.
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -82,16 +95,36 @@ export default function DummyListTable({ title, addLabel, columns }: DummyListTa
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan={columns.length} className="text-center p-6 text-slate-400">
-                  Kosong
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={columns.length} className="text-center p-6 text-slate-400">
+                    Memuat data...
+                  </td>
+                </tr>
+              ) : !rows || rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="text-center p-6 text-slate-400">
+                    Kosong
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row, index) => (
+                  <tr key={index} className="hover:bg-slate-50">
+                    {columns.map((column) => (
+                      <td key={column.key} className="p-3 border border-slate-200 whitespace-nowrap">
+                        {row[column.key] ?? '-'}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        <p className="text-sm text-slate-500 mt-4">Menampilkan 0 dari 0 data</p>
+        <p className="text-sm text-slate-500 mt-4">
+          Menampilkan {rows?.length ?? 0} dari {rows?.length ?? 0} data
+        </p>
       </div>
     </div>
   )
