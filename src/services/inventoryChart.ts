@@ -35,3 +35,26 @@ export async function getItemNames(): Promise<string[]> {
 
   return (data ?? []).map((row: { item_name: string }) => row.item_name)
 }
+
+export interface MonthlyInventoryRow {
+  month: string // 'YYYY-MM-DD', tanggal 1 di bulan itu
+  incoming: number
+  outgoing: number
+}
+
+export async function getMonthlyInventorySummary(
+  year?: number
+): Promise<MonthlyInventoryRow[]> {
+  // Kalau year tidak dikirim, params dibiarkan kosong supaya default
+  // p_year (tahun berjalan) di sisi Postgres yang dipakai — bukan null.
+  const params = year !== undefined ? { p_year: year } : {}
+
+  const { data, error } = await supabase.rpc(
+    'get_monthly_inventory_summary',
+    params
+  )
+
+  if (error) throw error
+
+  return data ?? []
+}

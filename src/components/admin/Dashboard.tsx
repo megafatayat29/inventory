@@ -15,6 +15,7 @@ import {
   type DashboardStats,
 } from '../../services/dashboardService'
 import InventoryChart from '../common/InventoryChart'
+import MonthlyFlowCharts from '../common/MonthlyFlowCharts'
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -141,6 +142,10 @@ export default function Dashboard() {
 
       <section className="mt-8">
         <InventoryChart />
+      </section>
+
+      <section className="mt-8">
+        <MonthlyFlowCharts />
       </section>
 
       <section className="mb-8">
