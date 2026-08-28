@@ -152,6 +152,7 @@ export default function Dashboard() {
       <section className="mt-8">
         <SpecialDepositsChart />
       </section>
+      <br />
 
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
