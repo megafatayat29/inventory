@@ -16,6 +16,7 @@ import {
 } from '../../services/dashboardService'
 import InventoryChart from '../common/InventoryChart'
 import MonthlyFlowCharts from '../common/MonthlyFlowCharts'
+import SpecialDepositsChart from '../common/SpecialDepositsChart'
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -146,6 +147,10 @@ export default function Dashboard() {
 
       <section className="mt-8">
         <MonthlyFlowCharts />
+      </section>
+
+      <section className="mt-8">
+        <SpecialDepositsChart />
       </section>
 
       <section className="mb-8">

@@ -58,3 +58,46 @@ export async function getMonthlyInventorySummary(
 
   return data ?? []
 }
+
+export interface SpecialDepositFilters {
+  dateFrom: string // 'YYYY-MM-DD'
+  dateTo: string // 'YYYY-MM-DD'
+  penitip?: string
+  jenis?: string
+}
+
+export interface SpecialDepositMonthlyRow {
+  month: string // 'YYYY-MM-DD', tanggal 1 di bulan itu
+  limbah_masuk: number
+  limbah_keluar: number
+  bbm_masuk: number
+  bbm_keluar: number
+  barang_bekas_masuk: number
+  barang_bekas_keluar: number
+}
+
+export async function getSpecialDepositsMonthlySummary(
+  filters: SpecialDepositFilters
+): Promise<SpecialDepositMonthlyRow[]> {
+  const { data, error } = await supabase.rpc(
+    'get_special_deposits_monthly_summary',
+    {
+      p_date_from: filters.dateFrom,
+      p_date_to: filters.dateTo,
+      p_penitip: filters.penitip?.trim() || null,
+      p_jenis: filters.jenis || null,
+    }
+  )
+
+  if (error) throw error
+
+  return data ?? []
+}
+
+export async function getSpecialDepositTypes(): Promise<string[]> {
+  const { data, error } = await supabase.rpc('get_special_deposit_types')
+
+  if (error) throw error
+
+  return (data ?? []).map((row: { jenis: string }) => row.jenis)
+}
