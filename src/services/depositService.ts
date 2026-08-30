@@ -172,6 +172,14 @@ export async function getAllDepositRequests() {
           row_no,
           status
         )
+      ),
+      return_records (
+        id,
+        taken_photo_path,
+        remaining_photo_path,
+        return_record_items (
+          item_id
+        )
       )
     `)
     .order('created_at', { ascending: false })

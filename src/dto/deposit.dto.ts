@@ -35,20 +35,6 @@ export type DepositUserForm = {
   unitKerja: string;
 };
 
-export type DepositRequest = {
-  id: string
-  depositor_name: string
-  nipp: string
-  jabatan: string
-  unit_kerja: string
-  initial_photo_path: string
-  supporting_document_path: string | null
-  status: string
-  created_at: string
-  items: DepositItem[]
-  placements: Placement[] | Placement | null
-}
-
 export type DepositItem = {
   id: string
   item_name: string
@@ -88,4 +74,28 @@ export type DepositDetail = {
   return_records?: ReturnRecord[]
   initial_photo_path: string
   supporting_document_path: string | null
+}
+
+export type DepositReturnRecordSummary = {
+  id: string
+  taken_photo_path: string | null
+  remaining_photo_path: string | null
+  return_record_items: {
+    item_id: string
+  }[]
+}
+
+export type DepositRequest = {
+  id: string
+  depositor_name: string
+  nipp: string
+  jabatan: string
+  unit_kerja: string
+  initial_photo_path: string
+  supporting_document_path: string | null
+  status: string
+  created_at: string
+  items: DepositItem[]
+  placements: Placement[] | Placement | null
+  return_records?: DepositReturnRecordSummary[]
 }

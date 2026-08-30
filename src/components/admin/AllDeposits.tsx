@@ -14,6 +14,7 @@ import type { Profile } from '../../dto/user.dto'
 import { deleteInventoryItem, updateInventoryItem } from '../../services/itemService'
 import Swal from 'sweetalert2'
 import type { DepositRequest } from '../../dto/deposit.dto'
+import { supabase } from '../../lib/supabase'
 
 type TableRow = {
   depositId: string
@@ -35,6 +36,18 @@ type TableRow = {
   daysStored: number
   status: string
   batchItemCount: number
+  initialPhotoUrl: string
+  pickupPhotoUrls: string
+  documentUrl: string
+}
+
+const PHOTO_BUCKET = 'inventory-photos'
+const DOCUMENT_BUCKET = 'inventory-documents'
+
+function getStorageUrl(bucket: string, path?: string | null) {
+  if (!path) return ''
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+  return data.publicUrl
 }
 
 function getDaysSince(dateString: string) {
@@ -342,10 +355,24 @@ export default function AllDeposits() {
       const rackLocation = placement?.rack_locations
       const placedDate = placement?.placed_at ?? ''
       const batchItemCount = deposit.items?.length ?? 0
+      const initialPhotoUrl = getStorageUrl(PHOTO_BUCKET, deposit.initial_photo_path)
+      const documentUrl = getStorageUrl(DOCUMENT_BUCKET, deposit.supporting_document_path)
+      const returnRecords = deposit.return_records ?? []
 
       return deposit.items.map((item) => {
         const position = rackLocation ? formatRackLocation(rackLocation) : '-'
         const entryDate = item.entry_date || deposit.created_at
+
+        const pickupPhotoUrls = Array.from(
+          new Set(
+            returnRecords
+              .filter((record) =>
+                record.return_record_items?.some((ri) => ri.item_id === item.id)
+              )
+              .map((record) => getStorageUrl(PHOTO_BUCKET, record.taken_photo_path))
+              .filter(Boolean)
+          )
+        ).join(', ')
 
         return {
           depositId: deposit.id,
@@ -365,10 +392,11 @@ export default function AllDeposits() {
           status: deposit.status,
           batchItemCount,
           rackCode: rackLocation?.rack_code ?? '-',
-          rowNo: rackLocation
-            ? `Row ${rackLocation.row_no}`
-            : '-',
+          rowNo: rackLocation ? `Row ${rackLocation.row_no}` : '-',
           daysStored: getDaysSince(entryDate),
+          initialPhotoUrl,
+          pickupPhotoUrls,
+          documentUrl,
         }
       })
     })
@@ -418,22 +446,13 @@ export default function AllDeposits() {
 
   function handleExportCsv() {
     const headers = [
-      'Nama Barang',
-      'Kategori',
-      'Jumlah Awal',
-      'Sisa Gudang',
-      'Unit Pengadaan',
-      'Posisi',
-      'Tanggal Masuk',
-      'Lama Simpan',
-      'Status',
-      'Nama Penitip',
-      'NIPP',
-      'Jabatan',
-      'Unit Kerja',
+      'Nama Barang', 'Kategori', 'Jumlah Awal', 'Sisa Gudang', 'Unit Pengadaan',
+      'Posisi', 'Tanggal Masuk', 'Lama Simpan', 'Status', 'Nama Penitip',
+      'NIPP', 'Jabatan', 'Unit Kerja',
+      'Foto Penitipan', 'Foto Pengambilan', 'Dokumen',
     ]
 
-    const rows = paginatedRows.map((row) => [
+    const rows = filteredRows.map((row) => [
       row.itemName,
       row.category,
       row.quantity,
@@ -448,7 +467,10 @@ export default function AllDeposits() {
       row.nipp,
       row.jabatan,
       row.unitKerja,
-      row.depositId
+      row.depositId,
+      row.initialPhotoUrl,
+      row.pickupPhotoUrls,
+      row.documentUrl,
     ])
 
     const csvContent = [
@@ -464,7 +486,7 @@ export default function AllDeposits() {
   }
 
   function handleExportExcel() {
-    const rows = paginatedRows.map((row) => ({
+    const rows = filteredRows.map((row) => ({
       'Nama Barang': row.itemName,
       Kategori: row.category,
       'Jumlah Awal': row.quantity,
@@ -479,11 +501,33 @@ export default function AllDeposits() {
       NIPP: row.nipp,
       Jabatan: row.jabatan,
       'Unit Kerja': row.unitKerja,
+      'Foto Penitipan': row.initialPhotoUrl,
+      'Foto Pengambilan': row.pickupPhotoUrls,
+      Dokumen: row.documentUrl,
     }))
 
     const worksheet = XLSX.utils.json_to_sheet(rows)
-    const workbook = XLSX.utils.book_new()
+    const headerKeys = rows.length > 0 ? Object.keys(rows[0]) : []
 
+    filteredRows.forEach((row, rowIndex) => {
+      if (row.initialPhotoUrl) {
+        const cellAddr = XLSX.utils.encode_cell({
+          r: rowIndex + 1,
+          c: headerKeys.indexOf('Foto Penitipan'),
+        })
+        if (worksheet[cellAddr]) worksheet[cellAddr].l = { Target: row.initialPhotoUrl }
+      }
+
+      if (row.documentUrl) {
+        const cellAddr = XLSX.utils.encode_cell({
+          r: rowIndex + 1,
+          c: headerKeys.indexOf('Dokumen'),
+        })
+        if (worksheet[cellAddr]) worksheet[cellAddr].l = { Target: row.documentUrl }
+      }
+    })
+
+    const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'List Barang')
 
     XLSX.writeFile(
@@ -646,9 +690,6 @@ export default function AllDeposits() {
                 </th>
                 <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
                   Status
-                </th>
-                <th className="text-left px-5 py-4 font-bold uppercase tracking-wide">
-                  Dokumen
                 </th>
                 <th className="text-right px-5 py-4 font-bold uppercase tracking-wide">
                   Aksi
