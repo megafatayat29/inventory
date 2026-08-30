@@ -98,10 +98,14 @@ export default function AllDeposits() {
     itemName: string
     category: string | null
     procurementUnit: string
+    quantity: number
+    remainingQuantity: number
     entryDate: string
     placedDate: string
     depositRequestId: string
   }) {
+    const isUntouched = row.remainingQuantity === row.quantity
+
     const result = await Swal.fire({
       title: 'Edit Barang',
       width: 700,
@@ -123,6 +127,24 @@ export default function AllDeposits() {
           </div>
 
           <div>
+            <label style="font-weight:600;">Quantity</label>
+            <input
+              id="quantity"
+              type="number"
+              min="1"
+              class="swal2-input"
+              style="margin:6px 0 0 0; width:100%;"
+              value="${row.quantity}"
+              ${isUntouched ? '' : 'disabled'}
+            />
+            ${
+              isUntouched
+                ? ''
+                : `<p style="font-size:12px;color:#dc2626;margin-top:4px;">Quantity tidak bisa diedit — barang ini sudah pernah diambil sebagian (sisa ${row.remainingQuantity} dari ${row.quantity}).</p>`
+            }
+          </div>
+
+          <div>
             <label style="font-weight:600;">Unit Pengadaan</label>
             <input id="procurement_unit" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.procurementUnit}" />
           </div>
@@ -131,7 +153,7 @@ export default function AllDeposits() {
             <label style="font-weight:600;">Tanggal Masuk</label>
             <input id="entry_date" type="date" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.entryDate}" />
           </div>
-          
+
           <div>
             <label style="font-weight:600;">Tanggal Plot</label>
             <input id="placed_date" type="date" class="swal2-input" style="margin:6px 0 0 0; width:100%;" value="${row.placedDate ? row.placedDate.slice(0, 10) : ''}" />
@@ -143,40 +165,25 @@ export default function AllDeposits() {
       cancelButtonText: 'Batal',
       confirmButtonColor: '#f97316',
       preConfirm: () => {
-        const itemName = (
-          document.getElementById('item_name') as HTMLInputElement
-        ).value.trim()
-
-        const category = (
-          document.getElementById('category') as HTMLSelectElement
-        ).value
-
-        const procurementUnit = (
-          document.getElementById('procurement_unit') as HTMLInputElement
-        ).value.trim()
-
-        const entryDate = (
-          document.getElementById('entry_date') as HTMLInputElement
-        ).value
-        
-        const placedDate = (
-          document.getElementById('placed_date') as HTMLInputElement
-        ).value
+        const itemName = (document.getElementById('item_name') as HTMLInputElement).value.trim()
+        const category = (document.getElementById('category') as HTMLSelectElement).value
+        const quantityInput = (document.getElementById('quantity') as HTMLInputElement).value
+        const quantity = isUntouched ? Number(quantityInput) : row.quantity
+        const procurementUnit = (document.getElementById('procurement_unit') as HTMLInputElement).value.trim()
+        const entryDate = (document.getElementById('entry_date') as HTMLInputElement).value
+        const placedDate = (document.getElementById('placed_date') as HTMLInputElement).value
 
         if (!itemName || !procurementUnit || !entryDate) {
-          Swal.showValidationMessage(
-            'Nama barang, unit pengadaan, tanggal masuk, dan tanggal plot wajib diisi.'
-          )
+          Swal.showValidationMessage('Nama barang, unit pengadaan, tanggal masuk, dan tanggal plot wajib diisi.')
           return
         }
 
-        return {
-          itemName,
-          category,
-          procurementUnit,
-          entryDate,
-          placedDate,
+        if (!Number.isFinite(quantity) || quantity < 1) {
+          Swal.showValidationMessage('Quantity harus angka lebih dari 0.')
+          return
         }
+
+        return { itemName, category, quantity, procurementUnit, entryDate, placedDate }
       },
     })
 
@@ -187,6 +194,7 @@ export default function AllDeposits() {
         item_id: row.itemId,
         item_name: result.value.itemName,
         category: result.value.category || null,
+        quantity: result.value.quantity,
         procurement_unit: result.value.procurementUnit,
         entry_date: result.value.entryDate,
         placed_date: `${result.value.placedDate}T00:00:00Z`,
@@ -204,14 +212,10 @@ export default function AllDeposits() {
       fetchDeposits()
     } catch (error) {
       console.error(error)
-
       Swal.fire({
         icon: 'error',
         title: 'Gagal',
-        text:
-          error instanceof Error
-            ? error.message
-            : 'Data barang gagal diperbarui.',
+        text: error instanceof Error ? error.message : 'Data barang gagal diperbarui.',
         confirmButtonColor: '#ef4444',
       })
     }
@@ -749,6 +753,8 @@ export default function AllDeposits() {
                                 itemName: row.itemName,
                                 category: row.category,
                                 procurementUnit: row.procurementUnit,
+                                quantity: row.quantity,
+                                remainingQuantity: row.remainingQuantity,
                                 entryDate: row.entryDate,
                                 placedDate: row.placedDate,
                                 depositRequestId: row.depositId,
