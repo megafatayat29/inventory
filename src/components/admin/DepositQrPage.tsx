@@ -356,7 +356,7 @@ export default function DepositQrPage() {
                 </p>
                 <p>
                   <span className="font-semibold">Tanggal Masuk:</span>{' '}
-                  {formatDateTime(deposit.items[0].entry_date)}
+                  {formatDate(deposit.items[0].entry_date)}
                 </p>
                 <p>
                   <span className="font-semibold">Lokasi Rak:</span>{' '}
