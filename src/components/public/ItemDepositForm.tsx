@@ -205,7 +205,7 @@ export default function ItemDepositForm() {
         {/* Header */}
         <div className="bg-[#1e3a8a] px-6 py-5 text-white flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold">Form Penitipan Barang</h1>
+            <h1 className="text-2xl font-bold">Form Coba Titip</h1>
             <p className="text-blue-100 text-sm mt-1">Gudang Logistik Unit Kerja</p>
           </div>
           <div className="flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm shrink-0">
