@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import Swal from 'sweetalert2'
 import DummyListTable from '../common/DummyListTable'
-import { getAllUsedGoodsDeposits } from '../../services/usedGoodsService'
+import UsedGoodsDepositModal from './UsedGoodsDepositModal'
+import UsedGoodsDetailModal from './UsedGoodsDetailModal'
 import {
-  getDepositStatusClass,
-  getDepositStatusLabel,
-} from '../../utils/statusBadge'
+  getAllUsedGoodsDeposits,
+  deleteUsedGoodsDeposit,
+} from '../../services/usedGoodsService'
 import type { UsedGoodsDeposit } from '../../dto/usedGoods.dto'
 
 function formatDate(dateString?: string | null) {
@@ -17,9 +19,18 @@ function formatDate(dateString?: string | null) {
   })
 }
 
+function truncate(text: string, max = 40) {
+  if (!text) return '-'
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
+
 export default function UsedGoodsList() {
   const [usedGoods, setUsedGoods] = useState<UsedGoodsDeposit[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState<UsedGoodsDeposit | null>(null)
+  const [detailItem, setDetailItem] = useState<UsedGoodsDeposit | null>(null)
 
   useEffect(() => {
     fetchUsedGoods()
@@ -38,41 +49,124 @@ export default function UsedGoodsList() {
     }
   }
 
-  const rows = usedGoods.map((item, index) => {
-    const status = item.deposit_requests?.status ?? null
+  function openCreateForm() {
+    setEditingItem(null)
+    setIsFormOpen(true)
+  }
 
-    return {
-      no: index + 1,
-      tanggal_masuk: formatDate(item.entry_date),
-      unit_penghasil: item.producing_unit,
-      status: status ? (
-        <span
-          className={`px-3 py-1 text-xs font-semibold rounded-full ${getDepositStatusClass(
-            status
-          )}`}
-        >
-          {getDepositStatusLabel(status)}
-        </span>
-      ) : (
-        '-'
-      ),
-      aksi: '-',
+  function openEditForm(item: UsedGoodsDeposit) {
+    setEditingItem(item)
+    setIsFormOpen(true)
+  }
+
+  function closeForm() {
+    setIsFormOpen(false)
+    setEditingItem(null)
+  }
+
+  async function handleDelete(item: UsedGoodsDeposit) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Hapus Data Barang Bekas?',
+      html: `Data barang bekas milik <b>${item.depositor_name}</b> akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`,
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      await deleteUsedGoodsDeposit(item.id)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Terhapus',
+        text: 'Data barang bekas berhasil dihapus.',
+        confirmButtonColor: '#1e3a8a',
+      })
+      fetchUsedGoods()
+    } catch (error: any) {
+      console.error(error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menghapus',
+        text: error?.message ?? 'Terjadi kesalahan saat menghapus data.',
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#dc2626',
+      })
     }
-  })
+  }
+
+  const rows = usedGoods.map((item, index) => ({
+    no: index + 1,
+    tanggal_masuk: formatDate(item.entry_date),
+    unit_penghasil: item.producing_unit,
+    pelapor: item.depositor_name,
+    nipp: item.nipp,
+    jabatan: item.jabatan,
+    unit_kerja: item.unit_kerja,
+    alasan: truncate(item.reason),
+    aksi: (
+      <div className="flex items-center gap-3 text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => setDetailItem(item)}
+          className="text-blue-700 hover:underline"
+        >
+          Detail
+        </button>
+        <button
+          type="button"
+          onClick={() => openEditForm(item)}
+          className="text-orange-600 hover:underline"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDelete(item)}
+          className="text-red-600 hover:underline"
+        >
+          Hapus
+        </button>
+      </div>
+    ),
+  }))
 
   return (
-    <DummyListTable
-      title="Daftar Penyimpanan Barang Bekas"
-      addLabel="Tambah Penyimpanan Barang Bekas"
-      columns={[
-        { key: 'no', label: 'No.' },
-        { key: 'tanggal_masuk', label: 'Tanggal Masuk' },
-        { key: 'unit_penghasil', label: 'Unit Penghasil' },
-        { key: 'status', label: 'Status' },
-        { key: 'aksi', label: 'Aksi' },
-      ]}
-      rows={rows}
-      loading={loading}
-    />
+    <>
+      <DummyListTable
+        title="Daftar Penyimpanan Barang Bekas"
+        addLabel="Tambah Penyimpanan Barang Bekas"
+        onAdd={openCreateForm}
+        columns={[
+          { key: 'no', label: 'No.' },
+          { key: 'tanggal_masuk', label: 'Tanggal Masuk' },
+          { key: 'unit_penghasil', label: 'Unit Penghasil' },
+          { key: 'pelapor', label: 'Pelapor' },
+          { key: 'nipp', label: 'NIPP' },
+          { key: 'jabatan', label: 'Jabatan' },
+          { key: 'unit_kerja', label: 'Unit Kerja' },
+          { key: 'alasan', label: 'Alasan Titip' },
+          { key: 'aksi', label: 'Aksi' },
+        ]}
+        rows={rows}
+        loading={loading}
+      />
+
+      <UsedGoodsDepositModal
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSaved={fetchUsedGoods}
+        usedGoods={editingItem}
+      />
+
+      <UsedGoodsDetailModal
+        usedGoods={detailItem}
+        onClose={() => setDetailItem(null)}
+      />
+    </>
   )
 }
