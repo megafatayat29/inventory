@@ -12,6 +12,13 @@ type DummyListTableProps = {
   columns: Column[]
   rows?: Record<string, ReactNode>[]
   loading?: boolean
+  /**
+   * Dipanggil saat tombol "Tambah" diklik. Kalau tidak diisi, tombol jatuh
+   * balik ke alert "Fitur ini masih dalam pengembangan." (perilaku lama,
+   * dipertahankan supaya halaman dummy lain yang belum diberi onAdd tidak
+   * berubah perilakunya).
+   */
+  onAdd?: () => void
 }
 
 export default function DummyListTable({
@@ -20,6 +27,7 @@ export default function DummyListTable({
   columns,
   rows,
   loading = false,
+  onAdd,
 }: DummyListTableProps) {
   const isConnected = rows !== undefined
 
@@ -43,7 +51,7 @@ export default function DummyListTable({
 
           <button
             type="button"
-            onClick={() => alert('Fitur ini masih dalam pengembangan.')}
+            onClick={onAdd ?? (() => alert('Fitur ini masih dalam pengembangan.'))}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition"
           >
             <Plus size={16} />

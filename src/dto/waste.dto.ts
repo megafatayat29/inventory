@@ -1,11 +1,25 @@
 export type WasteDeposit = {
   id: string
-  deposit_request_id: string | null
   storage_date: string
   producing_unit: string
   waste_type: string
+  depositor_name: string
+  nipp: string
+  jabatan: string
+  unit_kerja: string
+  reason: string
+  photo_path: string | null
   created_at: string
-  deposit_requests: {
-    status: string
-  } | null
+}
+
+export type CreateWasteDepositInput = {
+  storage_date: string
+  producing_unit: string
+  waste_type: string
+  depositor_name: string
+  nipp: string
+  jabatan: string
+  unit_kerja: string
+  reason: string
+  photo_path: string | null
 }
