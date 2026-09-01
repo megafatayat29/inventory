@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import Swal from 'sweetalert2'
 import DummyListTable from '../common/DummyListTable'
 import WasteDepositModal from './WasteDepositModal'
-import { getAllWasteDeposits } from '../../services/wasteService'
+import WasteDetailModal from './WasteDetailModal'
+import { getAllWasteDeposits, deleteWasteDeposit } from '../../services/wasteService'
 import type { WasteDeposit } from '../../dto/waste.dto'
 
 function formatDate(dateString?: string | null) {
@@ -22,7 +24,10 @@ function truncate(text: string, max = 40) {
 export default function WasteList() {
   const [wastes, setWastes] = useState<WasteDeposit[]>([])
   const [loading, setLoading] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingWaste, setEditingWaste] = useState<WasteDeposit | null>(null)
+  const [detailWaste, setDetailWaste] = useState<WasteDeposit | null>(null)
 
   useEffect(() => {
     fetchWastes()
@@ -41,9 +46,56 @@ export default function WasteList() {
     }
   }
 
-  // Catatan: foto belum ditampilkan di list (photo_path sudah tersimpan dan
-  // ada di data, tapi belum di-resolve jadi URL publik di sini karena
-  // photoService.ts belum terlihat — lihat pesan pendamping).
+  function openCreateForm() {
+    setEditingWaste(null)
+    setIsFormOpen(true)
+  }
+
+  function openEditForm(waste: WasteDeposit) {
+    setEditingWaste(waste)
+    setIsFormOpen(true)
+  }
+
+  function closeForm() {
+    setIsFormOpen(false)
+    setEditingWaste(null)
+  }
+
+  async function handleDelete(waste: WasteDeposit) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Hapus Data Limbah?',
+      html: `Data limbah <b>${waste.waste_type}</b> milik <b>${waste.depositor_name}</b> akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`,
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Hapus',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      await deleteWasteDeposit(waste.id)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Terhapus',
+        text: 'Data limbah berhasil dihapus.',
+        confirmButtonColor: '#1e3a8a',
+      })
+      fetchWastes()
+    } catch (error: any) {
+      console.error(error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menghapus',
+        text: error?.message ?? 'Terjadi kesalahan saat menghapus data.',
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#dc2626',
+      })
+    }
+  }
+
   const rows = wastes.map((waste, index) => ({
     no: index + 1,
     tanggal_masuk: formatDate(waste.storage_date),
@@ -54,7 +106,31 @@ export default function WasteList() {
     jabatan: waste.jabatan,
     unit_kerja: waste.unit_kerja,
     alasan: truncate(waste.reason),
-    aksi: '-',
+    aksi: (
+      <div className="flex items-center gap-3 text-sm font-medium">
+        <button
+          type="button"
+          onClick={() => setDetailWaste(waste)}
+          className="text-blue-700 hover:underline"
+        >
+          Detail
+        </button>
+        <button
+          type="button"
+          onClick={() => openEditForm(waste)}
+          className="text-orange-600 hover:underline"
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDelete(waste)}
+          className="text-red-600 hover:underline"
+        >
+          Hapus
+        </button>
+      </div>
+    ),
   }))
 
   return (
@@ -62,7 +138,7 @@ export default function WasteList() {
       <DummyListTable
         title="Daftar Limbah"
         addLabel="Tambah Limbah"
-        onAdd={() => setIsModalOpen(true)}
+        onAdd={openCreateForm}
         columns={[
           { key: 'no', label: 'No.' },
           { key: 'tanggal_masuk', label: 'Tanggal Masuk' },
@@ -80,10 +156,13 @@ export default function WasteList() {
       />
 
       <WasteDepositModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreated={fetchWastes}
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        onSaved={fetchWastes}
+        waste={editingWaste}
       />
+
+      <WasteDetailModal waste={detailWaste} onClose={() => setDetailWaste(null)} />
     </>
   )
 }

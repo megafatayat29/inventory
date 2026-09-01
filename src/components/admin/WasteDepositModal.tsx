@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { X, Save, Recycle, User, FileText } from 'lucide-react'
 import Swal from 'sweetalert2'
-import { createWasteDeposit } from '../../services/wasteService'
+import { createWasteDeposit, updateWasteDeposit } from '../../services/wasteService'
 import { uploadInventoryPhoto } from '../../services/photoService'
 import PhotoCapturePicker from '../common/PhotoCapturePicker'
-import type { CreateWasteDepositInput } from '../../dto/waste.dto'
+import type { CreateWasteDepositInput, WasteDeposit } from '../../dto/waste.dto'
 
 type WasteDepositModalProps = {
   isOpen: boolean
   onClose: () => void
-  onCreated: () => void
+  onSaved: () => void
+  /** Kalau diisi, modal jalan dalam mode Edit untuk record ini. Kosongkan untuk mode Tambah. */
+  waste?: WasteDeposit | null
 }
 
 type WasteFormFields = Omit<CreateWasteDepositInput, 'photo_path'>
@@ -36,14 +38,37 @@ function buildInitialForm(): WasteFormFields {
   }
 }
 
+function buildFormFromWaste(waste: WasteDeposit): WasteFormFields {
+  return {
+    storage_date: waste.storage_date,
+    producing_unit: waste.producing_unit,
+    waste_type: waste.waste_type,
+    depositor_name: waste.depositor_name,
+    nipp: waste.nipp,
+    jabatan: waste.jabatan,
+    unit_kerja: waste.unit_kerja,
+    reason: waste.reason,
+  }
+}
+
 export default function WasteDepositModal({
   isOpen,
   onClose,
-  onCreated,
+  onSaved,
+  waste = null,
 }: WasteDepositModalProps) {
+  const isEdit = Boolean(waste)
+
   const [form, setForm] = useState<WasteFormFields>(buildInitialForm)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Reset form tiap kali modal dibuka: isi dari record kalau edit, kosong kalau tambah.
+  useEffect(() => {
+    if (!isOpen) return
+    setForm(waste ? buildFormFromWaste(waste) : buildInitialForm())
+    setPhotoFile(null)
+  }, [isOpen, waste])
 
   if (!isOpen) return null
 
@@ -55,7 +80,6 @@ export default function WasteDepositModal({
   }
 
   function resetAndClose() {
-    setForm(buildInitialForm())
     setPhotoFile(null)
     onClose()
   }
@@ -63,7 +87,7 @@ export default function WasteDepositModal({
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
-    if (!photoFile) {
+    if (!isEdit && !photoFile) {
       Swal.fire({
         icon: 'warning',
         title: 'Foto belum diupload',
@@ -77,19 +101,28 @@ export default function WasteDepositModal({
     setIsSubmitting(true)
 
     try {
-      const photoPath = await uploadInventoryPhoto(photoFile, 'waste-deposit')
+      let photoPath = waste?.photo_path ?? null
+      if (photoFile) {
+        photoPath = await uploadInventoryPhoto(photoFile, 'waste-deposit')
+      }
 
-      await createWasteDeposit({ ...form, photo_path: photoPath })
+      if (isEdit && waste) {
+        await updateWasteDeposit(waste.id, { ...form, photo_path: photoPath })
+      } else {
+        await createWasteDeposit({ ...form, photo_path: photoPath })
+      }
 
       await Swal.fire({
         icon: 'success',
-        title: 'Limbah Tercatat',
-        text: 'Data limbah berhasil ditambahkan.',
+        title: isEdit ? 'Perubahan Disimpan' : 'Limbah Tercatat',
+        text: isEdit
+          ? 'Data limbah berhasil diperbarui.'
+          : 'Data limbah berhasil ditambahkan.',
         confirmButtonText: 'OK',
         confirmButtonColor: '#1e3a8a',
       })
 
-      onCreated()
+      onSaved()
       resetAndClose()
     } catch (error: any) {
       console.error(error)
@@ -115,7 +148,9 @@ export default function WasteDepositModal({
         <div className="bg-[#1e3a8a] px-6 py-4 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Recycle className="w-5 h-5" />
-            <h2 className="text-lg font-bold">Tambah Limbah</h2>
+            <h2 className="text-lg font-bold">
+              {isEdit ? 'Edit Limbah' : 'Tambah Limbah'}
+            </h2>
           </div>
           <button
             type="button"
@@ -270,11 +305,17 @@ export default function WasteDepositModal({
               Foto Penitipan
             </h3>
             <p className="text-slate-500 mb-4 text-sm">
-              Upload atau ambil foto kondisi limbah saat dititipkan.
+              {isEdit
+                ? 'Foto lama tetap dipakai kalau tidak diganti. Upload foto baru di bawah ini untuk menggantinya.'
+                : 'Upload atau ambil foto kondisi limbah saat dititipkan.'}
             </p>
 
-            <PhotoCapturePicker file={photoFile} onChange={setPhotoFile} required />
-            {!photoFile && (
+            <PhotoCapturePicker
+              file={photoFile}
+              onChange={setPhotoFile}
+              required={!isEdit}
+            />
+            {!isEdit && !photoFile && (
               <p className="text-sm text-orange-600 mt-2">
                 * Foto penitipan wajib diupload sebelum submit.
               </p>
@@ -295,7 +336,11 @@ export default function WasteDepositModal({
               className="flex items-center gap-2 px-5 py-2 bg-[#1e3a8a] text-white font-semibold rounded-md hover:bg-blue-800 shadow-md transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+              {isSubmitting
+                ? 'Menyimpan...'
+                : isEdit
+                  ? 'Simpan Perubahan'
+                  : 'Simpan'}
             </button>
           </div>
         </form>

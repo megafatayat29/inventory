@@ -1,0 +1,136 @@
+import { useState } from 'react'
+import { X, User, Recycle, FileText } from 'lucide-react'
+import { getInventoryPhotoUrl } from '../../services/photoService'
+import type { WasteDeposit } from '../../dto/waste.dto'
+
+type WasteDetailModalProps = {
+  waste: WasteDeposit | null
+  onClose: () => void
+}
+
+function formatDate(dateString?: string | null) {
+  if (!dateString) return '-'
+
+  return new Date(dateString).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+        {label}
+      </p>
+      <p className="text-sm text-gray-800 mt-0.5 whitespace-pre-wrap">
+        {value || '-'}
+      </p>
+    </div>
+  )
+}
+
+function PhotoPreview({ path }: { path: string | null }) {
+  const [failed, setFailed] = useState(false)
+
+  if (!path) {
+    return <p className="text-sm text-gray-500">Tidak ada foto.</p>
+  }
+
+  const url = getInventoryPhotoUrl(path)
+
+  if (!url || failed) {
+    return (
+      <p className="text-sm text-gray-500">
+        Foto tidak bisa ditampilkan langsung di sini. Path tersimpan:{' '}
+        <span className="font-mono break-all">{path}</span>
+      </p>
+    )
+  }
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      <img
+        src={url}
+        alt="Foto penitipan limbah"
+        className="max-h-72 rounded-md border border-gray-200 object-contain hover:opacity-90 transition"
+        onError={() => setFailed(true)}
+      />
+    </a>
+  )
+}
+
+export default function WasteDetailModal({
+  waste,
+  onClose,
+}: WasteDetailModalProps) {
+  if (!waste) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden border-t-8 border-blue-800 my-auto">
+        <div className="bg-[#1e3a8a] px-6 py-4 text-white flex items-center justify-between">
+          <h2 className="text-lg font-bold">Detail Limbah</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-blue-100 hover:text-white transition-colors"
+            aria-label="Tutup"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-8">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-[#1e3a8a]" />
+              Identitas Penitip
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Field label="Nama" value={waste.depositor_name} />
+              <Field label="NIPP" value={waste.nipp} />
+              <Field label="Jabatan" value={waste.jabatan} />
+              <Field label="Unit Kerja" value={waste.unit_kerja} />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
+              <Recycle className="w-5 h-5 text-[#1e3a8a]" />
+              Detail Limbah
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Field label="Unit Penghasil" value={waste.producing_unit} />
+              <Field label="Jenis Limbah" value={waste.waste_type} />
+              <Field label="Tanggal Masuk" value={formatDate(waste.storage_date)} />
+              <Field label="Dicatat Pada" value={formatDate(waste.created_at)} />
+              <div className="md:col-span-2">
+                <Field label="Alasan Titip" value={waste.reason} />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-base font-semibold text-gray-900 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-[#1e3a8a]" />
+              Foto Penitipan
+            </h3>
+            <PhotoPreview path={waste.photo_path} />
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2 bg-[#1e3a8a] text-white font-semibold rounded-md hover:bg-blue-800 transition"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
