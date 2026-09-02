@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 import {
   Archive,
   Boxes,
-  Fuel,
   Inbox,
   PackageCheck,
-  Recycle,
   RotateCcw,
   Trash2,
   Warehouse,
@@ -113,23 +111,23 @@ export default function Dashboard() {
 
   const specialDepositCards = [
     {
-      title: 'Limbah Tersimpan',
+      title: 'Limbah B3 Tersimpan',
       value: stats.storedWasteRequests,
       icon: Trash2,
       description: 'Batch limbah yang masih tersimpan di gudang',
     },
-    {
-      title: 'BBM & Pelumas Tersimpan',
-      value: stats.storedFuelRequests,
-      icon: Fuel,
-      description: 'Batch BBM & pelumas yang masih tersimpan di gudang',
-    },
-    {
-      title: 'Barang Bekas Tersimpan',
-      value: stats.storedUsedGoodsRequests,
-      icon: Recycle,
-      description: 'Batch barang bekas yang masih tersimpan di gudang',
-    },
+    // {
+    //   title: 'BBM & Pelumas Tersimpan',
+    //   value: stats.storedFuelRequests,
+    //   icon: Fuel,
+    //   description: 'Batch BBM & pelumas yang masih tersimpan di gudang',
+    // },
+    // {
+    //   title: 'Barang Bekas Tersimpan',
+    //   value: stats.storedUsedGoodsRequests,
+    //   icon: Recycle,
+    //   description: 'Batch barang bekas yang masih tersimpan di gudang',
+    // },
   ]
 
   return (
@@ -199,7 +197,7 @@ export default function Dashboard() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800">
-            Limbah, BBM & Barang Bekas
+            Limbah B3 Tersimpan
           </h3>
         </div>
 

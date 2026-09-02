@@ -61,23 +61,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .from('items')
       .select('quantity, remaining_quantity'),
 
-    supabase
-      .from('deposit_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'stored')
-      .eq('deposit_type', 'limbah'),
+    // waste_deposits/fuel_deposits/used_goods_deposits sudah dilepas dari
+    // deposit_requests dan tidak punya kolom status -- jadi "stored" di sini
+    // sekarang berarti "total baris yang ada", bukan lagi hasil filter status.
+    supabase.from('waste_deposits').select('id', { count: 'exact', head: true }),
+
+    supabase.from('fuel_deposits').select('id', { count: 'exact', head: true }),
 
     supabase
-      .from('deposit_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'stored')
-      .eq('deposit_type', 'bbm_pelumas'),
-
-    supabase
-      .from('deposit_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'stored')
-      .eq('deposit_type', 'barang_bekas'),
+      .from('used_goods_deposits')
+      .select('id', { count: 'exact', head: true }),
   ])
 
   const errors = [

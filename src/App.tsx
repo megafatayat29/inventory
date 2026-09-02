@@ -19,8 +19,6 @@ import AddExistingDeposit from './components/admin/AddExistingDeposit'
 import ManageAdmins from './components/admin/ManageAdmin'
 import PublicFormQrPage from './components/admin/PublicFormQrCode'
 import ResetPassword from './components/login/ResetPassword'
-import FuelList from './components/admin/FuelList'
-import UsedGoodsList from './components/admin/UsedGoodList'
 import WasteList from './components/admin/WasteList'
 
 function App() {
@@ -41,8 +39,8 @@ function App() {
             <Route path="incoming" element={<IncomingList />} />
             <Route path="deposits" element={<AllDeposits />} />
             <Route path="waste" element={<WasteList />} />
-            <Route path="used-goods" element={<UsedGoodsList />} />
-            <Route path="fuel" element={<FuelList />} />
+            {/* <Route path="used-goods" element={<UsedGoodsList />} />
+            <Route path="fuel" element={<FuelList />} /> */}
             <Route path="racks" element={<RackDashboard />} />
             <Route path="print-rack-qr" element={<PrintRackQr />} />
             <Route path="return" element={<ReturnForm />} />

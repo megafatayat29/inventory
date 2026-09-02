@@ -148,7 +148,7 @@ export default function SpecialDepositsChart() {
 
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">
-              Barang (jenis limbah/BBM)
+              Barang (jenis limbah)
             </label>
             <select
               value={jenis}
@@ -181,7 +181,7 @@ export default function SpecialDepositsChart() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex-1 min-w-0">
         <h3 className="text-lg font-semibold text-slate-800">
-          Limbah B3, Barang Bekas & BBM
+          Limbah B3
         </h3>
         <p className="text-sm text-slate-500 mb-4">
           {formatMonthLabel(dateFrom)} – {formatMonthLabel(dateTo)}
@@ -217,11 +217,11 @@ export default function SpecialDepositsChart() {
               <Bar dataKey="limbah_masuk" name="Limbah B3 Masuk" fill="#2563eb" radius={[4, 4, 0, 0]} />
               <Bar dataKey="limbah_keluar" name="Limbah B3 Keluar" fill="#93c5fd" radius={[4, 4, 0, 0]} />
 
-              <Bar dataKey="bbm_masuk" name="BBM Masuk" fill="#f97316" radius={[4, 4, 0, 0]} />
+              {/* <Bar dataKey="bbm_masuk" name="BBM Masuk" fill="#f97316" radius={[4, 4, 0, 0]} />
               <Bar dataKey="bbm_keluar" name="BBM Keluar" fill="#fdba74" radius={[4, 4, 0, 0]} />
 
               <Bar dataKey="barang_bekas_masuk" name="Barang Bekas Masuk" fill="#16a34a" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="barang_bekas_keluar" name="Barang Bekas Keluar" fill="#86efac" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="barang_bekas_keluar" name="Barang Bekas Keluar" fill="#86efac" radius={[4, 4, 0, 0]} /> */}
             </BarChart>
           </ResponsiveContainer>
         )}

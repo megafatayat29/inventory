@@ -10,8 +10,6 @@ import {
   PlusSquare,
   X,
   Trash2,
-  Fuel,
-  Recycle,
 } from 'lucide-react'
 import kaiLogo from '../../assets/kai.png'
 import lrtLogo from '../../assets/lrt.png'
@@ -68,20 +66,20 @@ export default function Sidebar({ role, onClose, isMobile }: SidebarProps) {
       icon: QrCode,
     },
     {
-      label: 'Penyimpanan Limbah',
+      label: 'Penyimpanan Limbah B3',
       path: '/admin/waste',
       icon: Trash2,
     },
-    {
-      label: 'Penyimpanan Barang Bekas',
-      path: '/admin/used-goods',
-      icon: Recycle,
-    },
-    {
-      label: 'Penyimpanan BBM dan Pelumas',
-      path: '/admin/fuel',
-      icon: Fuel,
-    },
+    // {
+    //   label: 'Penyimpanan Barang Bekas',
+    //   path: '/admin/used-goods',
+    //   icon: Recycle,
+    // },
+    // {
+    //   label: 'Penyimpanan BBM dan Pelumas',
+    //   path: '/admin/fuel',
+    //   icon: Fuel,
+    // },
     ...(role === 'super_admin'
       ? [
           {

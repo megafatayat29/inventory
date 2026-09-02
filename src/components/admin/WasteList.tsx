@@ -5,6 +5,8 @@ import WasteDepositModal from './WasteDepositModal'
 import WasteDetailModal from './WasteDetailModal'
 import { getAllWasteDeposits, deleteWasteDeposit } from '../../services/wasteService'
 import type { WasteDeposit } from '../../dto/waste.dto'
+import type { Profile } from '../../dto/user.dto'
+import { getMyProfile } from '../../services/authService'
 
 function formatDate(dateString?: string | null) {
   if (!dateString) return '-'
@@ -24,15 +26,26 @@ function truncate(text: string, max = 40) {
 export default function WasteList() {
   const [wastes, setWastes] = useState<WasteDeposit[]>([])
   const [loading, setLoading] = useState(true)
-
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingWaste, setEditingWaste] = useState<WasteDeposit | null>(null)
   const [detailWaste, setDetailWaste] = useState<WasteDeposit | null>(null)
-
+  
   useEffect(() => {
     fetchWastes()
   }, [])
+  
+  useEffect(() => {
+    async function fetchProfile() {
+      const data = await getMyProfile()
+      setProfile(data)
+    }
+    
+    fetchProfile()
+  }, [])
 
+  const isSuperAdmin = profile?.role === 'super_admin'
+  
   async function fetchWastes() {
     try {
       setLoading(true)
@@ -115,20 +128,24 @@ export default function WasteList() {
         >
           Detail
         </button>
-        <button
-          type="button"
-          onClick={() => openEditForm(waste)}
-          className="text-orange-600 hover:underline"
-        >
-          Edit
-        </button>
-        <button
-          type="button"
-          onClick={() => handleDelete(waste)}
-          className="text-red-600 hover:underline"
-        >
-          Hapus
-        </button>
+        {isSuperAdmin && (
+          <>
+            <button
+              type="button"
+              onClick={() => openEditForm(waste)}
+              className="text-orange-600 hover:underline"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDelete(waste)}
+              className="text-red-600 hover:underline"
+            >
+              Hapus
+            </button>
+          </>
+        )}
       </div>
     ),
   }))

@@ -114,7 +114,7 @@ export default function WasteDepositModal({
 
       await Swal.fire({
         icon: 'success',
-        title: isEdit ? 'Perubahan Disimpan' : 'Limbah Tercatat',
+        title: isEdit ? 'Perubahan Disimpan' : 'Limbah B3 Tercatat',
         text: isEdit
           ? 'Data limbah berhasil diperbarui.'
           : 'Data limbah berhasil ditambahkan.',
@@ -229,7 +229,7 @@ export default function WasteDepositModal({
             </div>
           </div>
 
-          {/* Detail Limbah */}
+          {/* Detail Limbah B3*/}
           <div>
             <h3 className="text-base font-semibold text-gray-900 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
               <Recycle className="w-5 h-5 text-[#1e3a8a]" />
