@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import { Plus, Trash2, Save, Package, User, Camera } from 'lucide-react'
+import { Plus, Trash2, Save, Package, User, Camera, FileText } from 'lucide-react'
 import { createExistingDeposit } from '../../services/depositService'
 import { getEmptyRackLocations } from '../../services/rackService'
-import { uploadInventoryPhoto } from '../../services/photoService'
+import { uploadInventoryPhoto, uploadInventoryDocument } from '../../services/photoService'
 import { formatRackLocation } from '../../utils/formatRackLocation'
 import PhotoCapturePicker from '../common/PhotoCapturePicker'
 
@@ -36,6 +36,8 @@ const createEmptyItem = (): ExistingItem => ({
   category: '',
 })
 
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024 // 10MB
+
 export default function AddExistingDeposit() {
   const getTodayDate = () => {
     const today = new Date()
@@ -55,6 +57,7 @@ export default function AddExistingDeposit() {
   const [locations, setLocations] = useState<RackLocation[]>([])
   const [initialPhotoFile, setInitialPhotoFile] = useState<File | null>(null)
   const [placementPhotoFile, setPlacementPhotoFile] = useState<File | null>(null)
+  const [supportingDocFile, setSupportingDocFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -105,6 +108,35 @@ export default function AddExistingDeposit() {
           : item
       )
     )
+  }
+
+  function handleSupportingDocChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== 'application/pdf') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Format Tidak Didukung',
+        text: 'Dokumen pendukung harus berformat PDF.',
+        confirmButtonColor: '#f97316',
+      })
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_DOCUMENT_SIZE) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Ukuran File Terlalu Besar',
+        text: 'Ukuran dokumen maksimal 10MB.',
+        confirmButtonColor: '#f97316',
+      })
+      event.target.value = ''
+      return
+    }
+
+    setSupportingDocFile(file)
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -173,6 +205,14 @@ export default function AddExistingDeposit() {
         'existing-placement'
       )
 
+      let supportingDocumentPath = ''
+      if (supportingDocFile) {
+        supportingDocumentPath = await uploadInventoryDocument(
+          supportingDocFile,
+          'existing-documents'
+        )
+      }
+
       await createExistingDeposit({
         depositor_name: depositorName,
         nipp,
@@ -180,6 +220,7 @@ export default function AddExistingDeposit() {
         unit_kerja: unitKerja,
         initial_photo_path: initialPhotoPath,
         placement_photo_path: placementPhotoPath,
+        supporting_document_path: supportingDocumentPath,
         rack_location_id: rackLocationId,
         entry_date: entryDate,
         items: validItems.map((item) => ({
@@ -211,6 +252,7 @@ export default function AddExistingDeposit() {
       setItems([createEmptyItem()])
       setInitialPhotoFile(null)
       setPlacementPhotoFile(null)
+      setSupportingDocFile(null)
       fetchLocations()
     } catch (error: any) {
       console.error(error)
@@ -474,6 +516,39 @@ export default function AddExistingDeposit() {
                     * Foto aktual barang di rak wajib diupload sebelum submit.
                   </p>
                 )}
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#1e3a8a]" />
+                  Dokumen Pendukung
+                  <span className="text-slate-400 font-normal"> (opsional)</span>
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Upload dokumen pendukung dalam format PDF (opsional, maksimal 10MB).
+                </p>
+
+                <label
+                  htmlFor="existing-supporting-document"
+                  className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-blue-300 rounded-lg p-8 cursor-pointer hover:bg-blue-50 transition-colors"
+                >
+                  <FileText className="w-10 h-10 text-blue-800" />
+                  <span className="font-semibold text-slate-800">
+                    {supportingDocFile ? supportingDocFile.name : 'Pilih File PDF'}
+                  </span>
+                  <span className="text-sm text-slate-500">
+                    {supportingDocFile
+                      ? `${(supportingDocFile.size / (1024 * 1024)).toFixed(2)} MB`
+                      : 'Klik untuk pilih dokumen dari perangkat'}
+                  </span>
+                  <input
+                    id="existing-supporting-document"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleSupportingDocChange}
+                    className="hidden"
+                  />
+                </label>
               </div>
             </div>
           </div>

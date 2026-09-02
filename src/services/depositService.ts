@@ -242,6 +242,7 @@ export async function createExistingDeposit(payload: {
   unit_kerja: string
   initial_photo_path?: string
   placement_photo_path?: string
+  supporting_document_path?: string
   rack_location_id: string
   entry_date: string
   items: {
