@@ -42,12 +42,6 @@ function formatDate(dateString?: string | null) {
   })
 }
 
-function formatDateTime(dateString?: string | null) {
-  if (!dateString) return '-'
-
-  return new Date(dateString).toLocaleString('id-ID')
-}
-
 export default function DepositQrPage() {
   const { depositRequestId } = useParams()
   const navigate = useNavigate()
@@ -546,11 +540,6 @@ export default function DepositQrPage() {
                               <p>
                                 <span className="font-semibold">Tanggal Keluar:</span>{' '}
                                 {formatDate(record.return_date)}
-                              </p>
-
-                              <p>
-                                <span className="font-semibold">Diproses Sistem:</span>{' '}
-                                {formatDateTime(record.created_at)}
                               </p>
                             </div>
                           </div>

@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts'
+import SearchableSelect from '../common/SearchableSelect'
 import {
   getInventoryChart,
   getItemNames,
@@ -154,18 +155,13 @@ export default function InventoryChart() {
             <label className="block text-xs font-medium text-slate-500 mb-1">
               Barang
             </label>
-            <select
+            <SearchableSelect
               value={barang}
-              onChange={(e) => setBarang(e.target.value)}
-              className="w-full text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
-            >
-              <option value="">Semua barang</option>
-              {itemOptions.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
+              onChange={setBarang}
+              options={itemOptions}
+              allLabel="Semua barang"
+              searchPlaceholder="Cari barang..."
+            />
           </div>
 
           <button
