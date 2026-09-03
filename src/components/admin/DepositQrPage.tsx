@@ -4,6 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react'
 import {
   ArrowLeft,
   Download,
+  Eye,
   FileText,
   Printer,
   QrCode,
@@ -29,6 +30,7 @@ import {
 import { getActivePlacement } from '../../utils/getActivePlacement'
 import type { DepositDetail } from '../../dto/deposit.dto'
 import type { Profile } from '../../dto/user.dto'
+import type { ReturnRecord } from '../../dto/item.dto'
 import PhotoGallery from '../common/PhotoGallery'
 import { getPublicImage } from '../../utils/getPublicImage'
 
@@ -50,6 +52,9 @@ export default function DepositQrPage() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [uploadingDocument, setUploadingDocument] = useState(false)
+  const [selectedReturn, setSelectedReturn] = useState<ReturnRecord | null>(
+    null
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -544,9 +549,20 @@ export default function DepositQrPage() {
                             </div>
                           </div>
 
-                          <span className="w-fit rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-semibold">
-                            Pengambilan
-                          </span>
+                          <div className="flex items-center gap-2 print:hidden">
+                            <span className="w-fit rounded-full bg-orange-100 text-orange-700 px-3 py-1 text-xs font-semibold">
+                              Pengambilan
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedReturn(record)}
+                              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs font-semibold"
+                            >
+                              <Eye size={16} />
+                              Lihat Dokumentasi
+                            </button>
+                          </div>
                         </div>
 
                         {record.notes && (
@@ -622,6 +638,66 @@ export default function DepositQrPage() {
           </p>
         </div>
       </div>
+
+      {selectedReturn && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 print:hidden">
+          <div className="bg-white rounded-xl w-full max-w-4xl p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">
+                Dokumentasi Pengambilan
+              </h2>
+
+              <button
+                onClick={() => setSelectedReturn(null)}
+                className="text-slate-500 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mb-4 space-y-1 text-sm">
+              <p>
+                <strong>Nama:</strong> {selectedReturn.returned_by_name}
+              </p>
+              <p>
+                <strong>Tanggal:</strong>{' '}
+                {formatDate(selectedReturn.return_date)}
+              </p>
+              <p>
+                <strong>Catatan:</strong> {selectedReturn.notes || '-'}
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-medium mb-2">Kondisi Sisa Barang</h3>
+
+                {selectedReturn.remaining_photo_path ? (
+                  <img
+                    src={getPublicImage(selectedReturn.remaining_photo_path)}
+                    className="rounded-lg border w-full"
+                  />
+                ) : (
+                  <p className="text-slate-500">No photo uploaded</p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-medium mb-2">Barang yang Diambil</h3>
+
+                {selectedReturn.taken_photo_path ? (
+                  <img
+                    src={getPublicImage(selectedReturn.taken_photo_path)}
+                    className="rounded-lg border w-full"
+                  />
+                ) : (
+                  <p className="text-slate-500">No photo uploaded</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

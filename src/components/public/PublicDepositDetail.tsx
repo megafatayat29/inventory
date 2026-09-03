@@ -392,11 +392,14 @@ export default function PublicDepositDetail() {
                 <h3 className="font-medium mb-2">
                   Barang yang Diambil
                 </h3>
-
-                <img
-                  src={selectedReturn.taken_photo_path ? getPublicImage(selectedReturn.taken_photo_path) : 'No Photo Uploaded'}
-                  className="rounded-lg border w-full"
-                />
+                {selectedReturn.taken_photo_path ? (
+                  <img
+                    src={getPublicImage(selectedReturn.taken_photo_path)}
+                    className="rounded-lg border w-full"
+                  />
+                ) : (
+                  <p className="text-slate-500">No photo uploaded</p>
+                )}
               </div>
 
             </div>
